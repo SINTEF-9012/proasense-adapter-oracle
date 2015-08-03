@@ -29,6 +29,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.6</version>
+        </dependency>
+        <dependency>
             <groupId>eu.proasense.internal</groupId>
             <artifactId>thrift-messages</artifactId>
             <version>0.4</version>

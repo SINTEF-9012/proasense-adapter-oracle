@@ -20,6 +20,12 @@ package net.modelbased.proasense.adapter.scrap;
 
 import net.modelbased.proasense.adapter.oracle.AbstractOracleAdapter;
 
+import java.sql.SQLException;
+
 
 public class ScrapAdapter extends AbstractOracleAdapter {
+
+
+    public ScrapAdapter() throws SQLException, ClassNotFoundException {
+    }
 }

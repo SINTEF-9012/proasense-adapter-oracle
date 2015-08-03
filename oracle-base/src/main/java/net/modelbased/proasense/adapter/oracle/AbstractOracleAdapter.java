@@ -20,14 +20,24 @@ package net.modelbased.proasense.adapter.oracle;
 
 import net.modelbased.proasense.adapter.base.AbstractBaseAdapter;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 
 public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
     protected OracleConsumerInput inputPort;
 
-    public AbstractOracleAdapter() {
+    public AbstractOracleAdapter() throws SQLException, ClassNotFoundException {
         // Oracle input port properties
 
         this.inputPort = new OracleConsumerInput();
+        Connection con = inputPort.con;
+/*        java.sql.PreparedStatement statement = con.prepareStatement("select * from SCRAP");
+        ResultSet result = statement.executeQuery();
+        while (result.next()){
+            System.out.println(result.getString(1) + " " + result.getString(2));
+        }*/
     }
 
 }

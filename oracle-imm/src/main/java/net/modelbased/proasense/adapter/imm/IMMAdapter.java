@@ -20,6 +20,15 @@ package net.modelbased.proasense.adapter.imm;
 
 import net.modelbased.proasense.adapter.oracle.AbstractOracleAdapter;
 
+import java.sql.SQLException;
+
 
 public class IMMAdapter extends AbstractOracleAdapter {
+
+    public static void main(String[] args) throws SQLException, ClassNotFoundException {
+    new IMMAdapter();
+    }
+    public IMMAdapter() throws SQLException, ClassNotFoundException {
+
+    }
 }

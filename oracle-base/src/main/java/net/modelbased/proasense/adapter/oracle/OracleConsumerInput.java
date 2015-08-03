@@ -19,10 +19,29 @@
 package net.modelbased.proasense.adapter.oracle;
 
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 public class OracleConsumerInput {
 
-    public OracleConsumerInput() {
-        // Create Oracle connection
-    }
+    Connection con;
 
+    public OracleConsumerInput() throws ClassNotFoundException, SQLException {
+        // Create Oracle connection
+        Class.forName("oracle.jdbc.driver.OracleDriver"); // lokasjonen på driveren.
+
+        //navnet på getConnection er hentet fra addressen som er i minOracle databasen sin properties.
+        Connection con = DriverManager.getConnection("jdbc:oracle:thin:@//localhost:1521", "SYSTEM", "1234");
+
+        System.out.println("xxxxxxxxxxxxxxxxxS");
+        java.sql.PreparedStatement statement = con.prepareStatement("select * from SCRAP");
+        ResultSet result = statement.executeQuery();
+        while (result.next()){
+            System.out.println("i løkken "+result);
+
+            System.out.println(result.getString(1) + " " + result.getString(2));
+        }
+    }
 }
