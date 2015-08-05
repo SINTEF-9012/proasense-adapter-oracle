@@ -19,25 +19,41 @@
 package net.modelbased.proasense.adapter.oracle;
 
 import net.modelbased.proasense.adapter.base.AbstractBaseAdapter;
+import org.apache.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.logging.Level;
 
 
 public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
     protected OracleConsumerInput inputPort;
 
+    public final static Logger logger = Logger.getLogger(AbstractOracleAdapter.class);
+
     public AbstractOracleAdapter() throws SQLException, ClassNotFoundException {
         // Oracle input port properties
 
-        this.inputPort = new OracleConsumerInput();
+        String url = adapterProperties.getProperty("proasense.adapter.oracle.url");
+        String username = adapterProperties.getProperty("proasense.adapter.oracle.username");
+        String password = adapterProperties.getProperty("proasense.adapter.oracle.password");
+        //System.out.println("url er " + sensorId + " username " + username + " password " + sensorId);
+
+
+        this.inputPort = new OracleConsumerInput(url, username, password);
         Connection con = inputPort.con;
-/*        java.sql.PreparedStatement statement = con.prepareStatement("select * from SCRAP");
+        java.sql.PreparedStatement statement = con.prepareStatement("select * from SCRAP");
         ResultSet result = statement.executeQuery();
+
         while (result.next()){
-            System.out.println(result.getString(1) + " " + result.getString(2));
-        }*/
+
+           // System.out.println(result.getString(1) + " " + result.getString(2));
+            convertToSimpleEvent(result);
+        }
     }
 
+    //hittil er strukturen det samme som for Montrac.
+    //huske å bruke logget.debug("...");
+    protected abstract void convertToSimpleEvent(ResultSet values) throws SQLException;
 }

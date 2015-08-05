@@ -20,6 +20,7 @@ package net.modelbased.proasense.adapter.imm;
 
 import net.modelbased.proasense.adapter.oracle.AbstractOracleAdapter;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 
@@ -30,5 +31,20 @@ public class IMMAdapter extends AbstractOracleAdapter {
     }
     public IMMAdapter() throws SQLException, ClassNotFoundException {
 
+    }
+
+
+    protected void convertToSimpleEvent(ResultSet values) throws SQLException {
+        System.out.println(values.getString(1) + " " + values.getString(2));
+        String charecteristic = values.getString(0);
+        String designation = values.getString(1);
+        long targeValue = Long.parseLong(values.getString(2)); //konvertert til long.
+        String utl = values.getString(3);
+        String upal = values.getString(4);
+        String ltl = values.getString(5);
+        String lpal = values.getString(6);
+        String unit = values.getString(7);
+        String measuredValue = values.getString(8);
+        String measuredTimeS = values.getString(9);
     }
 }
