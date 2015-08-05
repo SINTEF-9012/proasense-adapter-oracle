@@ -56,7 +56,7 @@ public class ScrapAdapter extends AbstractOracleAdapter {
 
         //Conversion of date from string to long.
         long convertDate_timeStamp = 0;
-        String sensorId = "VisualInspection";
+        String sensorId = workplace;
 
         DateFormat dateFormat = new SimpleDateFormat("M/dd/yyyy H:m");
         try {
@@ -73,8 +73,6 @@ public class ScrapAdapter extends AbstractOracleAdapter {
         //simpleEvent.setSensorId(sensorId);
         //simpleEvent.setTimestamp(convertDate_timeStamp);
         //System.out.println("logger er "+logger);
-      //  logger.debug("sensorId = " + sensorId);
-      //  logger.debug("Timestamp = "+convertDate_timeStamp);
 
         /*
 o	Workplace => {key=machineId, value=61282649, type=STRING}
@@ -89,40 +87,35 @@ o	FinalArticle => {key=finalArticle, value=192.168-00, type=STRING}
         complexValue.setValue(workplace);
         complexValue.setType(VariableType.STRING);
         eventProperties.put("machineId", complexValue); // workplace kan forandres, usikker på hva som er ID.
-        //logger.debug(simpleEvent.toString());
 
         complexValue = new ComplexValue();
         complexValue.setValue(type);
         complexValue.setType(VariableType.STRING);
         eventProperties.put("type", complexValue);
-        //logger.debug(simpleEvent.toString());
 
         complexValue = new ComplexValue();
         complexValue.setValue(scrap);
         complexValue.setType(VariableType.LONG);
         eventProperties.put("scrap", complexValue);
-        //logger.debug(simpleEvent.toString());
 
         complexValue = new ComplexValue();
         complexValue.setValue(reasonText);
         complexValue.setType(VariableType.STRING);
         eventProperties.put("reasonText", complexValue);
-        //logger.debug(simpleEvent.toString());
 
         complexValue = new ComplexValue();
         complexValue.setValue(designation);
         complexValue.setType(VariableType.STRING);
         eventProperties.put("designation", complexValue);
-       // logger.debug(simpleEvent.toString());
 
         complexValue = new ComplexValue();
         complexValue.setValue(finalArticle);
         complexValue.setType(VariableType.STRING);
         eventProperties.put("finalArticle", complexValue);
-        //logger.debug(simpleEvent.toString());
 
         simpleEvent.eventProperties = eventProperties;
         SimpleEvent event = outputPort.createSimpleEvent(sensorId, convertDate_timeStamp, eventProperties);
+        logger.debug(event.toString());
         outputPort.publishSimpleEvent(event);
     }
 }
