@@ -43,7 +43,7 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
 
         this.inputPort = new OracleConsumerInput(url, username, password);
         Connection con = inputPort.con;
-        java.sql.PreparedStatement statement = con.prepareStatement("select * from SCRAP");
+        java.sql.PreparedStatement statement = con.prepareStatement("select * from IMM_6128649");
         ResultSet result = statement.executeQuery();
 
         while (result.next()){

@@ -39,7 +39,7 @@ public class IMMAdapter extends AbstractOracleAdapter {
         logger.debug(values.getString(1) + " " + values.getString(2));
         String charecteristic = values.getString(1);
         String designation = values.getString(2);
-        long targeValue = Long.parseLong(values.getString(3)); //konvertert til long.
+        String targeValue = values.getString(3);
         String utl = values.getString(4);
         String upal = values.getString(5);
         String ltl = values.getString(6);
