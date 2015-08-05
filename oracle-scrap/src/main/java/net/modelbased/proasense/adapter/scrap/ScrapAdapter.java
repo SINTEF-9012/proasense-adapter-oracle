@@ -70,19 +70,6 @@ public class ScrapAdapter extends AbstractOracleAdapter {
         SimpleEvent simpleEvent = new SimpleEvent();
         Map<String, ComplexValue> eventProperties = new HashMap<String, ComplexValue>();
 
-        //simpleEvent.setSensorId(sensorId);
-        //simpleEvent.setTimestamp(convertDate_timeStamp);
-        //System.out.println("logger er "+logger);
-
-        /*
-o	Workplace => {key=machineId, value=61282649, type=STRING}
-o	Type => {key=type, value=Scrap, type=STRING}
-o	Scrap => {key=scrap, value=1, type=LONG}
-o	ReasonText => {key=reasonText, value=S1, type=STRING}
-o	Designation => {key=designation, value=S1_0001, type=STRING}
-o	FinalArticle => {key=finalArticle, value=192.168-00, type=STRING}
-        */
-
         ComplexValue complexValue = new ComplexValue();
         complexValue.setValue(workplace);
         complexValue.setType(VariableType.STRING);

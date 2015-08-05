@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
+
 
 
 public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {

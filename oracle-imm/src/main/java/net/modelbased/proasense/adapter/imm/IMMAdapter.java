@@ -18,6 +18,7 @@
  */
 package net.modelbased.proasense.adapter.imm;
 
+import com.sun.media.jfxmedia.logging.Logger;
 import net.modelbased.proasense.adapter.oracle.AbstractOracleAdapter;
 
 import java.sql.ResultSet;
@@ -35,16 +36,34 @@ public class IMMAdapter extends AbstractOracleAdapter {
 
 
     protected void convertToSimpleEvent(ResultSet values) throws SQLException {
-        System.out.println(values.getString(1) + " " + values.getString(2));
-        String charecteristic = values.getString(0);
-        String designation = values.getString(1);
-        long targeValue = Long.parseLong(values.getString(2)); //konvertert til long.
-        String utl = values.getString(3);
-        String upal = values.getString(4);
-        String ltl = values.getString(5);
-        String lpal = values.getString(6);
-        String unit = values.getString(7);
-        String measuredValue = values.getString(8);
-        String measuredTimeS = values.getString(9);
+        logger.debug(values.getString(1) + " " + values.getString(2));
+        String charecteristic = values.getString(1);
+        String designation = values.getString(2);
+        long targeValue = Long.parseLong(values.getString(3)); //konvertert til long.
+        String utl = values.getString(4);
+        String upal = values.getString(5);
+        String ltl = values.getString(6);
+        String lpal = values.getString(7);
+        String unit = values.getString(8);
+        String measuredValue = values.getString(9);
+        String measuredTimeS = values.getString(10);
+
+        if(designation.equals("Dosing Time")){
+            logger.debug("designation er "+designation);
+        }else if(designation.equals("Cycle Time")){
+            logger.debug("designation er "+designation);
+        }else if(designation.equals("Movement Differential")){
+            logger.debug("designation er "+designation);
+        }else if(designation.equals("Cavity Pressure")){
+            logger.debug("designation er "+designation);
+        }else if(designation.equals("Injection Time")){
+            logger.debug("designation er "+designation);
+        }else if(designation.equals("Melt Cushion")){
+            logger.debug("designation er "+designation);
+        }else if(designation.equals("Jet Temperation ")){
+            logger.debug("designation er "+designation);
+        }else if(designation.equals("Cooling Time ")){
+
+        }
     }
 }
