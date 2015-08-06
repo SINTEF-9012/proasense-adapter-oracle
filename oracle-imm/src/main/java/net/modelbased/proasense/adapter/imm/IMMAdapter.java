@@ -19,10 +19,19 @@
 package net.modelbased.proasense.adapter.imm;
 
 import com.sun.media.jfxmedia.logging.Logger;
+import eu.proasense.internal.ComplexValue;
+import eu.proasense.internal.SimpleEvent;
+import eu.proasense.internal.VariableType;
 import net.modelbased.proasense.adapter.oracle.AbstractOracleAdapter;
 
+import java.lang.reflect.MalformedParameterizedTypeException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class IMMAdapter extends AbstractOracleAdapter {
@@ -36,7 +45,9 @@ public class IMMAdapter extends AbstractOracleAdapter {
 
 
     protected void convertToSimpleEvent(ResultSet values) throws SQLException {
+
         logger.debug(values.getString(1) + " " + values.getString(2));
+
         String charecteristic = values.getString(1);
         String designation = values.getString(2);
         String targeValue = values.getString(3);
@@ -46,24 +57,76 @@ public class IMMAdapter extends AbstractOracleAdapter {
         String lpal = values.getString(7);
         String unit = values.getString(8);
         String measuredValue = values.getString(9);
-        String measuredTimeS = values.getString(10);
+        String measuredTime = values.getString(10);
+
+        long timestamp = 0;
+        DateFormat dateFormat = new SimpleDateFormat("M/dd/yyyy H:m");
+        try {
+            Date date = dateFormat.parse(measuredTime);
+            timestamp = date.getTime();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ComplexValue complexValue = new ComplexValue();
 
         if(designation.equals("Dosing Time")){
-            logger.debug("designation er "+designation);
+            logger.debug("designation er " + designation);
+            complexValue.setType(VariableType.DOUBLE);
+            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
+
         }else if(designation.equals("Cycle Time")){
-            logger.debug("designation er "+designation);
+            logger.debug("designation er " + designation);
+
+            complexValue.setType(VariableType.DOUBLE);
+            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
+
         }else if(designation.equals("Movement Differential")){
-            logger.debug("designation er "+designation);
+            logger.debug("designation er " + designation);
+
+            complexValue.setType(VariableType.DOUBLE);
+            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
+
         }else if(designation.equals("Cavity Pressure")){
-            logger.debug("designation er "+designation);
+            logger.debug("designation er " + designation);
+
+            complexValue.setType(VariableType.DOUBLE);
+            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
+
         }else if(designation.equals("Injection Time")){
+            logger.debug("designation er " + designation);
+
+            complexValue.setType(VariableType.DOUBLE);
+            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
+
+        } else if (designation.equals("Melt Cushion")){
             logger.debug("designation er "+designation);
-        }else if(designation.equals("Melt Cushion")){
+
+            complexValue.setType(VariableType.DOUBLE);
+            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
+
+        } else if (designation.equals("Jet Temperation ")){
             logger.debug("designation er "+designation);
-        }else if(designation.equals("Jet Temperation ")){
-            logger.debug("designation er "+designation);
+
+            complexValue.setType(VariableType.DOUBLE);
+            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
+
         }else if(designation.equals("Cooling Time ")){
+            logger.debug("designation er "+designation);
+
+            complexValue.setType(VariableType.DOUBLE);
+            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
 
         }
+    }
+
+    public void createAndPublishEvent(String charecteristic, long timestamp, String measuredValue, ComplexValue complexValue){
+        Map<String, ComplexValue> eventProperties = new HashMap<String, ComplexValue>();
+
+        complexValue.setValue(measuredValue);
+        eventProperties.put(charecteristic, complexValue);
+        SimpleEvent event =  outputPort.createSimpleEvent(maschineName, timestamp, eventProperties);
+        outputPort.publishSimpleEvent(event);
+        System.out.println(event.toString());
     }
 }

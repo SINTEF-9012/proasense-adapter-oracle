@@ -31,6 +31,7 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
     protected OracleConsumerInput inputPort;
 
     public final static Logger logger = Logger.getLogger(AbstractOracleAdapter.class);
+    protected String maschineName = adapterProperties.getProperty("proasense.adapter.oracle.maschineName1");
 
     public AbstractOracleAdapter() throws SQLException, ClassNotFoundException {
         // Oracle input port properties
@@ -38,17 +39,18 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
         String url = adapterProperties.getProperty("proasense.adapter.oracle.url");
         String username = adapterProperties.getProperty("proasense.adapter.oracle.username");
         String password = adapterProperties.getProperty("proasense.adapter.oracle.password");
-        //System.out.println("url er " + sensorId + " username " + username + " password " + sensorId);
+        String tableName = adapterProperties.getProperty("proasense.adapter.oracle.DBTableName1");
+
 
 
         this.inputPort = new OracleConsumerInput(url, username, password);
         Connection con = inputPort.con;
-        java.sql.PreparedStatement statement = con.prepareStatement("select * from IMM_6128649");
+        System.out.println("navnet er "+tableName+" og maskinnavnet er "+maschineName);
+        java.sql.PreparedStatement statement = con.prepareStatement("select * from "+tableName);
         ResultSet result = statement.executeQuery();
 
         while (result.next()){
 
-           // System.out.println(result.getString(1) + " " + result.getString(2));
             convertToSimpleEvent(result);
         }
     }
