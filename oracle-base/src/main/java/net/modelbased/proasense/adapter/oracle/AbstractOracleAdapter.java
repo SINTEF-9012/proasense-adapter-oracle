@@ -18,20 +18,24 @@
  */
 package net.modelbased.proasense.adapter.oracle;
 
+import eu.proasense.internal.ComplexValue;
+import eu.proasense.internal.VariableType;
 import net.modelbased.proasense.adapter.base.AbstractBaseAdapter;
 import org.apache.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
 
 
 public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
     protected OracleConsumerInput inputPort;
 
     public final static Logger logger = Logger.getLogger(AbstractOracleAdapter.class);
-    protected String maschineName = adapterProperties.getProperty("proasense.adapter.oracle.maschineName1");
 
     public AbstractOracleAdapter() throws SQLException, ClassNotFoundException {
         // Oracle input port properties
@@ -40,22 +44,76 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
         String username = adapterProperties.getProperty("proasense.adapter.oracle.username");
         String password = adapterProperties.getProperty("proasense.adapter.oracle.password");
         String tableName = adapterProperties.getProperty("proasense.adapter.oracle.DBTableName1");
+        String sensor_id = adapterProperties.getProperty("proasense.adapter.base.sensorid");
+        String reference_id_tags = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.tags");
+        String reference_id_mapping = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.mapping");
+        String object_id_tag = adapterProperties.getProperty("proasense.adapter.oracle.imm.object_id.tags");
+        String objectTag[] = object_id_tag.split(",");
+        String object_id_mapping = adapterProperties.getProperty("proasense.adapter.oracle.imm.object_id.mapping");
+        String objectValue[] = object_id_mapping.split(",");
 
-
-
+        HashMap map = createNameMap(objectTag, objectValue);
         this.inputPort = new OracleConsumerInput(url, username, password);
         Connection con = inputPort.con;
-        System.out.println("navnet er "+tableName+" og maskinnavnet er "+maschineName);
         java.sql.PreparedStatement statement = con.prepareStatement("select * from "+tableName);
         ResultSet result = statement.executeQuery();
 
         while (result.next()){
+           // convertToSimpleEvent(result);
+        if(map.containsKey(result.getString(4))){
+            String mappedVlues = (String) map.get(result.getString(4));
+            String splitValue[] = splitValues(mappedVlues);
+            long newDateObject = convertDate(result.getString(1));
+            String extractedValue = "";
+            ComplexValue complexValue = new ComplexValue();
 
-            convertToSimpleEvent(result);
+            if(splitValue[1].equals("STRING")){
+                extractedValue = result.getString(3);
+                complexValue.setType(VariableType.STRING);
+            }else if(splitValue[1].equals("DOUBLE")){
+                extractedValue = result.getString(7);
+                complexValue.setType(VariableType.DOUBLE);
+            }else if(splitValue[1].equals("INTEGER")){
+                extractedValue = result.getString(6);
+
+            }else if(splitValue[1].equals("CHAR")){
+
+                extractedValue = result.getString(5);
+            }
+            complexValue.setValue(extractedValue);
+            convertToSimpleEvent(sensor_id, newDateObject, splitValue[0],complexValue);
+            }
         }
     }
 
     //hittil er strukturen det samme som for Montrac.
     //huske å bruke logget.debug("...");
-    protected abstract void convertToSimpleEvent(ResultSet values) throws SQLException;
+    protected abstract void convertToSimpleEvent(String sensorId, long timeStamp, String characteristic, ComplexValue complexValue);
+
+
+    HashMap createNameMap(String[] objectId, String[] nameAndValues){
+        HashMap map = new HashMap();
+
+        for(int i = 0; i < objectId.length; i++){
+            map.put(objectId[i], nameAndValues[i]);
+        }
+        return map;
+    }
+
+    String[] splitValues(String valuesToSplit){
+            String[] splitTwoValues = valuesToSplit.split(":");
+        return splitTwoValues;
+    }
+
+    long convertDate(String date){
+        long timestamp = 0;
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd hh:mm:ss");
+        try {
+            Date convertedDate = dateFormat.parse(date);
+            timestamp = convertedDate.getTime();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return timestamp;
+    }
 }

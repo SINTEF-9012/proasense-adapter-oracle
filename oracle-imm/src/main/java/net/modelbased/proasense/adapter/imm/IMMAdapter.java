@@ -39,93 +39,30 @@ public class IMMAdapter extends AbstractOracleAdapter {
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
     new IMMAdapter();
     }
+
     public IMMAdapter() throws SQLException, ClassNotFoundException {
 
     }
 
 
-    protected void convertToSimpleEvent(ResultSet values) throws SQLException {
+    protected void convertToSimpleEvent(String sensorId, long timeStamp, String characteristic, ComplexValue complexValue){
 
-        logger.debug(values.getString(1) + " " + values.getString(2));
+        SimpleEvent simpleEvent = new SimpleEvent();
+        simpleEvent.setSensorId(sensorId);
+        simpleEvent.setTimestamp(timeStamp);
+        simpleEvent.putToEventProperties(characteristic, complexValue);
+        outputPort.publishSimpleEvent(simpleEvent);
+        System.out.println(simpleEvent.toString());
 
-        String charecteristic = values.getString(1);
-        String designation = values.getString(2);
-        String targeValue = values.getString(3);
-        String utl = values.getString(4);
-        String upal = values.getString(5);
-        String ltl = values.getString(6);
-        String lpal = values.getString(7);
-        String unit = values.getString(8);
-        String measuredValue = values.getString(9);
-        String measuredTime = values.getString(10);
-
-        long timestamp = 0;
-        DateFormat dateFormat = new SimpleDateFormat("M/dd/yyyy H:m");
-        try {
-            Date date = dateFormat.parse(measuredTime);
-            timestamp = date.getTime();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        ComplexValue complexValue = new ComplexValue();
-
-        if(designation.equals("Dosing Time")){
-            logger.debug("designation er " + designation);
-            complexValue.setType(VariableType.DOUBLE);
-            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
-
-        }else if(designation.equals("Cycle Time")){
-            logger.debug("designation er " + designation);
-
-            complexValue.setType(VariableType.DOUBLE);
-            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
-
-        }else if(designation.equals("Movement Differential")){
-            logger.debug("designation er " + designation);
-
-            complexValue.setType(VariableType.DOUBLE);
-            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
-
-        }else if(designation.equals("Cavity Pressure")){
-            logger.debug("designation er " + designation);
-
-            complexValue.setType(VariableType.DOUBLE);
-            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
-
-        }else if(designation.equals("Injection Time")){
-            logger.debug("designation er " + designation);
-
-            complexValue.setType(VariableType.DOUBLE);
-            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
-
-        } else if (designation.equals("Melt Cushion")){
-            logger.debug("designation er "+designation);
-
-            complexValue.setType(VariableType.DOUBLE);
-            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
-
-        } else if (designation.equals("Jet Temperation ")){
-            logger.debug("designation er "+designation);
-
-            complexValue.setType(VariableType.DOUBLE);
-            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
-
-        }else if(designation.equals("Cooling Time ")){
-            logger.debug("designation er "+designation);
-
-            complexValue.setType(VariableType.DOUBLE);
-            createAndPublishEvent(charecteristic, timestamp, measuredValue, complexValue);
-
-        }
     }
 
-    public void createAndPublishEvent(String charecteristic, long timestamp, String measuredValue, ComplexValue complexValue){
+    public void createAndPublishEvent(long timestamp, String ref_id, String objectId, ComplexValue complexValue){
         Map<String, ComplexValue> eventProperties = new HashMap<String, ComplexValue>();
 
-        complexValue.setValue(measuredValue);
-        eventProperties.put(charecteristic, complexValue);
-        SimpleEvent event =  outputPort.createSimpleEvent(maschineName, timestamp, eventProperties);
+        complexValue.setValue(ref_id); // finne ut om denne er nødvendig da den er gjentatt i metodekallet også.
+        eventProperties.put(objectId, complexValue);
+        SimpleEvent event =  outputPort.createSimpleEvent(ref_id, timestamp, eventProperties);
+        event.setSensorId("moulding");
         outputPort.publishSimpleEvent(event);
         System.out.println(event.toString());
     }
