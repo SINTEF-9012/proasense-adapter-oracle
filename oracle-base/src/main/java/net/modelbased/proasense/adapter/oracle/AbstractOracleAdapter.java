@@ -64,7 +64,7 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
 
     //hittil er strukturen det samme som for Montrac.
     //huske å bruke logget.debug("...");
-    protected abstract void convertToSimpleEvent(Connection con, HashMap map, ArrayList ref_id_mapping, String nameAndDate) throws SQLException, InterruptedException;
+    protected abstract int convertToSimpleEvent(int prevCount, Connection con, HashMap map, ArrayList ref_id_mapping, String nameAndDate) throws SQLException, InterruptedException;
 
     protected abstract void processTables(String sensorId, long timeStamp, String characteristic, ComplexValue complexValue) throws SQLException;
 
@@ -96,6 +96,10 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
 
     public void  checkForLatestTable(Connection con, String globalTableName) throws SQLException, InterruptedException {
         String newTableName = "'"+trimTableName(globalTableName)+"%'";
+        String prevTableName = "";
+        int rowCount = 0;
+        int prevCount = 0;
+
         while(true) {
 
             java.sql.PreparedStatement statement = con.prepareStatement("select * from(select object_name, created " +
@@ -103,13 +107,18 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
                     "  where rownum = 1");
 
             ResultSet resultSet = statement.executeQuery();
-            if(resultSet.next()) convertToSimpleEvent(con, map, al, resultSet.getString(1)+","+resultSet.getString(2));
+            if(resultSet.next()){
+                if(!(resultSet.getString(1).equals(prevTableName))) prevCount = 0;
+               rowCount =  convertToSimpleEvent(prevCount,con, map, al, resultSet.getString(1)+","+resultSet.getString(2));
+            }
 
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            prevCount = rowCount;
+            prevTableName = resultSet.getString(1);
             System.out.println("er i ytre while.");
         }
     }

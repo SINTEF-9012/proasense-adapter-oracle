@@ -48,7 +48,7 @@ public class IMMAdapter extends AbstractOracleAdapter {
 
     }
 
-    protected void convertToSimpleEvent(Connection con, HashMap map, ArrayList ref_id_mapping, String nameAndDate) throws SQLException, InterruptedException {
+    protected int convertToSimpleEvent(int prevCount, Connection con, HashMap map, ArrayList ref_id_mapping, String nameAndDate) throws SQLException, InterruptedException {
 
         LocalDate localDate = new LocalDate();
         String[] tableNameAndDate = nameAndDate.split(",");
@@ -56,7 +56,6 @@ public class IMMAdapter extends AbstractOracleAdapter {
         String tableName = tableNameAndDate[0];
         String sensor_id = ref_id_mapping.get(0).toString();
         int newRowCount = 0;
-        int prevCount = 0;
 
         while(true){
             Thread.sleep(3000);
@@ -65,13 +64,16 @@ public class IMMAdapter extends AbstractOracleAdapter {
 
 
             if(result.next())newRowCount = Integer.parseInt(result.getString(1));
-            if(creationDate[0].compareTo(localDate.toString()) == 0){
+            //System.out.println(result.getString(1));
+            if(creationDate[0].compareTo(localDate.toString()) < 0){
                 try {
                     if(prevCount < newRowCount) createDelay(con, tableName, map, sensor_id, prevCount, newRowCount);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                return;
+                prevCount = newRowCount;
+                System.out.println("prevCount = "+prevCount+" newCount = "+newRowCount);
+                return prevCount;
             }
 
             try {
@@ -79,9 +81,8 @@ public class IMMAdapter extends AbstractOracleAdapter {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
             prevCount = newRowCount;
-
+            System.out.println("prevCount = "+prevCount+" newCount = "+newRowCount);
         }
     }
 
@@ -92,6 +93,7 @@ public class IMMAdapter extends AbstractOracleAdapter {
         simpleEvent.setTimestamp(timeStamp);
         simpleEvent.putToEventProperties(characteristic, complexValue);
         outputPort.publishSimpleEvent(simpleEvent);
+        System.out.println(simpleEvent.toString());
 
     }
 
@@ -118,7 +120,7 @@ public class IMMAdapter extends AbstractOracleAdapter {
         ResultSet result = statement.executeQuery();
 
         while (result.next()){
-            System.out.println(result.getString(5));
+           // System.out.println(result.getString(5));
             if(map.containsKey(result.getString(5))){
 
                 String mappedVlues = (String) map.get(result.getString(5));
