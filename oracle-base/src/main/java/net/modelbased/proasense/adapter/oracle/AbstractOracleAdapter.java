@@ -35,8 +35,9 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
     protected OracleConsumerInput inputPort;
 
     public final static Logger logger = Logger.getLogger(AbstractOracleAdapter.class);
-    HashMap map = null;
-    ArrayList al = null;
+    HashMap objectToValueMap = null;
+    HashMap<String, HashMap> idToMap = null;
+    String sensorId;
     public AbstractOracleAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
         // Oracle input port properties
 
@@ -44,17 +45,22 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
         String username = adapterProperties.getProperty("proasense.adapter.oracle.username");
         String password = adapterProperties.getProperty("proasense.adapter.oracle.password");
         String globalTableName = adapterProperties.getProperty("proasense.adapter.oracle.DBTableName1");
+        // gir moulding som sensorId
         String sensor_id = adapterProperties.getProperty("proasense.adapter.base.sensorid");
-        String reference_id_tags = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.tags");
-        String id_tags[] = reference_id_tags.split(",");
+        this.sensorId = sensor_id;
+        // gir nr på maskinene  som er mappet til og id_tags som er sensorId:String
         String reference_id_mapping = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.mapping");
+        String reference_id_tags = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.tags");
+        // gir alle ord vi skal sammenligne med, som cycleTime og hvordan mappingen er, eks cycleTime:DOUBLE
         String object_id_tag = adapterProperties.getProperty("proasense.adapter.oracle.imm.object_id.tags");
-        String objectTag[] = object_id_tag.split(",");
         String object_id_mapping = adapterProperties.getProperty("proasense.adapter.oracle.imm.object_id.mapping");
+
+        String id_tags[] = reference_id_tags.split(",");
+        String objectTag[] = object_id_tag.split(",");
         String objectValue[] = object_id_mapping.split(",");
 
-        map = createNameMap(objectTag, objectValue);
-        al = refIdAndMapping(sensor_id, reference_id_mapping, id_tags);
+        objectToValueMap = createNameMap(objectTag, objectValue);
+        idToMap = createIdToValueMap(reference_id_mapping, id_tags); // alle id fikk en mapping med id-nr og string type.
         this.inputPort = new OracleConsumerInput(url, username, password);
         Connection con = inputPort.con;
 
@@ -62,11 +68,6 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
 
     }
 
-    //hittil er strukturen det samme som for Montrac.
-    //huske å bruke logget.debug("...");
-    protected abstract int convertToSimpleEvent(int prevCount, Connection con, HashMap map, ArrayList ref_id_mapping, String nameAndDate) throws SQLException, InterruptedException;
-
-    protected abstract void processTables(String sensorId, long timeStamp, String characteristic, ComplexValue complexValue) throws SQLException;
 
     HashMap createNameMap(String[] objectId, String[] nameAndValues){
         HashMap map = new HashMap();
@@ -77,10 +78,6 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
         return map;
     }
 
-    public String[] splitValues(String valuesToSplit){
-            String[] splitTwoValues = valuesToSplit.split(":");
-        return splitTwoValues;
-    }
 
     public long convertDate(String date){
         long timestamp = 0;
@@ -109,7 +106,8 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
             ResultSet resultSet = statement.executeQuery();
             if(resultSet.next()){
                 if(!(resultSet.getString(1).equals(prevTableName))) prevCount = 0;
-               rowCount =  convertToSimpleEvent(prevCount,con, map, al, resultSet.getString(1)+","+resultSet.getString(2));
+               rowCount =  convertToSimpleEvent(prevCount,con, objectToValueMap, idToMap ,
+                       resultSet.getString(1)+","+resultSet.getString(2), sensorId);
             }
 
             try {
@@ -123,18 +121,25 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
         }
     }
 
-    ArrayList refIdAndMapping(String sensor_id, String refId, String[] refMapping){
-        ArrayList arrayList = new ArrayList();
-        arrayList.add(0, sensor_id);
-        arrayList.add(1, refId);
-
-        for(int i = 0; i < refMapping.length; i++){
-            arrayList.add(i+2, refMapping[i]);
-        }
-        return arrayList;
-    }
 
     String trimTableName(String nameFromProperties){
         return nameFromProperties.substring(0, 5);
     }
+
+    HashMap<String, HashMap> createIdToValueMap(String refId, String[] id_tags){
+        HashMap<String, HashMap> machines = new HashMap<String, HashMap>();
+        HashMap values = new HashMap();
+
+        String[] ref_id_tag = refId.split(":");
+
+        for(int i = 0; i < id_tags.length; i++){
+            values.put(ref_id_tag[0] +","+ ref_id_tag[1], id_tags[i]);
+            machines.put(id_tags[i], values);
+        }
+        return  machines;
+    }
+
+    protected abstract int convertToSimpleEvent(int prevCount, Connection con, HashMap map,
+                                                HashMap<String, HashMap> idToMap, String nameAndDate,
+                                                String machineId) throws SQLException, InterruptedException;
 }

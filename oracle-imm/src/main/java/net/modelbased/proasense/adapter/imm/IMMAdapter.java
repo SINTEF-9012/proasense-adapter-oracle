@@ -31,14 +31,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 
 public class IMMAdapter extends AbstractOracleAdapter {
 
+    String sensorId;
     public static void main(String[] args) throws SQLException, ClassNotFoundException, InterruptedException {
     new IMMAdapter();
     }
@@ -48,13 +46,13 @@ public class IMMAdapter extends AbstractOracleAdapter {
 
     }
 
-    protected int convertToSimpleEvent(int prevCount, Connection con, HashMap map, ArrayList ref_id_mapping, String nameAndDate) throws SQLException, InterruptedException {
-
+    protected int convertToSimpleEvent(int prevCount, Connection con, HashMap map,HashMap idToMap,
+                                       String nameAndDate, String sensorId) throws SQLException, InterruptedException {
+        this.sensorId = sensorId;
         LocalDate localDate = new LocalDate();
         String[] tableNameAndDate = nameAndDate.split(",");
         String creationDate[] = tableNameAndDate[1].split(" ");
         String tableName = tableNameAndDate[0];
-        String sensor_id = ref_id_mapping.get(0).toString();
         int newRowCount = 0;
 
         while(true){
@@ -67,7 +65,7 @@ public class IMMAdapter extends AbstractOracleAdapter {
             //System.out.println(result.getString(1));
             if(creationDate[0].compareTo(localDate.toString()) < 0){
                 try {
-                    if(prevCount < newRowCount) createDelay(con, tableName, map, sensor_id, prevCount, newRowCount);
+                    if(prevCount < newRowCount) filterData(con, tableName, map, idToMap, prevCount, newRowCount);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -77,7 +75,7 @@ public class IMMAdapter extends AbstractOracleAdapter {
             }
 
             try {
-                if(newRowCount > prevCount)createDelay(con, tableName, map, sensor_id, prevCount, newRowCount);
+                if(newRowCount > prevCount)filterData(con, tableName, map, idToMap, prevCount, newRowCount);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -86,28 +84,7 @@ public class IMMAdapter extends AbstractOracleAdapter {
         }
     }
 
-    protected void processTables(String sensorId, long timeStamp, String characteristic, ComplexValue complexValue){
-
-        SimpleEvent simpleEvent = new SimpleEvent();
-        simpleEvent.setSensorId(sensorId);
-        simpleEvent.setTimestamp(timeStamp);
-        simpleEvent.putToEventProperties(characteristic, complexValue);
-        outputPort.publishSimpleEvent(simpleEvent);
-        System.out.println(simpleEvent.toString());
-
-    }
-
-    public void createAndPublishEvent(long timestamp, String ref_id, String objectId, ComplexValue complexValue){
-        Map<String, ComplexValue> eventProperties = new HashMap<String, ComplexValue>();
-
-        complexValue.setValue(ref_id); // finne ut om denne er nødvendig da den er gjentatt i metodekallet også.
-        eventProperties.put(objectId, complexValue);
-        SimpleEvent event =  outputPort.createSimpleEvent(ref_id, timestamp, eventProperties);
-        event.setSensorId("moulding");
-        outputPort.publishSimpleEvent(event);
-    }
-
-    public void createDelay(Connection con, String tableName, HashMap map, String sensor_id,
+    public void filterData(Connection con, String tableName, HashMap map, HashMap<String, HashMap> idToMap,
     int prevCount, int newCount) throws InterruptedException, SQLException {
 
         java.sql.PreparedStatement statement = con.prepareStatement("SELECT *\n" +
@@ -120,26 +97,61 @@ public class IMMAdapter extends AbstractOracleAdapter {
         ResultSet result = statement.executeQuery();
 
         while (result.next()){
-           // System.out.println(result.getString(5));
+
             if(map.containsKey(result.getString(5))){
+                long date = convertDate(result.getString(2));
+            String id_mapping = (String)map.get(result.getString(5));
+            String[] split_id_mapping = splitValues(id_mapping);
+            String refId = result.getString(4);
+                HashMap tempMap = idToMap.get(refId);
 
-                String mappedVlues = (String) map.get(result.getString(5));
-                String splitValue[] = splitValues(mappedVlues);
-                long newDateObject = convertDate(result.getString(2));
-                String extractedValue = "";
-                ComplexValue complexValue = new ComplexValue();
-
-                if(splitValue[1].equals("STRING")){
-                    extractedValue = result.getString(3);
-                    complexValue.setType(VariableType.STRING);
-                }else if(splitValue[1].equals("DOUBLE")){
-                    extractedValue = result.getString(7);
-                    complexValue.setType(VariableType.DOUBLE);
+                if(split_id_mapping[1].equals("STRING")){
+                    if(!tempMap.containsKey(split_id_mapping[0]))
+                        tempMap.put(split_id_mapping[0] + "," + split_id_mapping[1], refId);
+                    if(tempMap.size() == 8){
+                        outputToBroker(date, tempMap);
+                        tempMap.clear();
+                    }
+                }else if(split_id_mapping[1].equals("DOUBLE")){
+                    if(!tempMap.containsKey(split_id_mapping[0]))
+                        tempMap.put(split_id_mapping[0]+","+split_id_mapping[1], result.getString(8));
+                    if(tempMap.size() == 8){
+                        outputToBroker(date, tempMap);
+                        tempMap.clear();
+                    }
                 }
-
-                complexValue.setValue(extractedValue);
-                processTables(sensor_id, newDateObject, splitValue[0], complexValue);
             }
         }
+    }
+
+    public String[] splitValues(String valuesToSplit){
+        String[] splitTwoValues = valuesToSplit.split(":");
+        return splitTwoValues;
+    }
+
+    public void outputToBroker(long date, HashMap<String, HashMap> mapValueAndType){
+        SimpleEvent event = new SimpleEvent();
+        event.setTimestamp(date);
+        event.setSensorId(sensorId);
+
+        String objectId = "";
+
+        for(String key: mapValueAndType.keySet()){
+            String[] objectIdAndType = key.split(",");
+            objectId = objectIdAndType[0];
+            String value = String.valueOf(mapValueAndType.get(key));
+            ComplexValue complexValue = new ComplexValue();
+            complexValue.setValue(value);
+
+            if(objectIdAndType[1].equals("STRING")){
+                complexValue.setType(VariableType.STRING);
+            }else if(objectIdAndType[1].equals("DOUBLE")){
+                complexValue.setType(VariableType.DOUBLE);
+            }
+            event.putToEventProperties(objectId, complexValue);
+
+        }
+        System.out.println(event.toString());
+        outputPort.publishSimpleEvent(event);
     }
 }
