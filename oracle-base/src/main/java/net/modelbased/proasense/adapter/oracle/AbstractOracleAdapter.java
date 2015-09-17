@@ -65,9 +65,7 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
         Connection con = inputPort.con;
 
         checkForLatestTable(con, globalTableName);
-
     }
-
 
     HashMap createNameMap(String[] objectId, String[] nameAndValues){
         HashMap map = new HashMap();
@@ -104,7 +102,9 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
                     "  where rownum = 1");
 
             ResultSet resultSet = statement.executeQuery();
+
             if(resultSet.next()){
+                System.out.println("tabell er "+resultSet.getString(1)+" prev tbl er "+prevTableName);
                 if(!(resultSet.getString(1).equals(prevTableName))) prevCount = 0;
                rowCount =  convertToSimpleEvent(prevCount,con, objectToValueMap, idToMap ,
                        resultSet.getString(1)+","+resultSet.getString(2), sensorId);
