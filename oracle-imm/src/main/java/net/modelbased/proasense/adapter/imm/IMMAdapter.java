@@ -18,7 +18,6 @@
  */
 package net.modelbased.proasense.adapter.imm;
 
-import com.sun.media.jfxmedia.logging.Logger;
 import eu.proasense.internal.ComplexValue;
 import eu.proasense.internal.SimpleEvent;
 import eu.proasense.internal.VariableType;
