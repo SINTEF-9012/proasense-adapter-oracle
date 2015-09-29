@@ -9,7 +9,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>oracle-scrap</artifactId>
     <packaging>jar</packaging>
-    <name>oracle-scrap Maven Webapp</name>
+    <name>oracle-scrap</name>
     <url>http://maven.apache.org</url>
 
     <dependencies>
