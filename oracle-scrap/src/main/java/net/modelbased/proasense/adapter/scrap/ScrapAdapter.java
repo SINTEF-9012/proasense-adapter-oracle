@@ -23,6 +23,7 @@ import eu.proasense.internal.SimpleEvent;
 import eu.proasense.internal.VariableType;
 import net.modelbased.proasense.adapter.oracle.AbstractOracleAdapter;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -35,11 +36,17 @@ import java.util.Map;
 public class ScrapAdapter extends AbstractOracleAdapter {
 
 
-    public static void main(String[] args) throws SQLException, ClassNotFoundException {
+    public static void main(String[] args) throws SQLException, ClassNotFoundException, InterruptedException {
         new ScrapAdapter();
     }
 
-    public ScrapAdapter() throws SQLException, ClassNotFoundException {
+    public ScrapAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
+    }
+
+
+    @Override
+    protected int convertToSimpleEvent(int prevCount, Connection con, HashMap map, HashMap<String, HashMap> idToMap, String nameAndDate, String machineId) throws SQLException, InterruptedException {
+        return 0;
     }
 
 
