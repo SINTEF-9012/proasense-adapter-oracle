@@ -138,7 +138,7 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
         }
         return  machines;
     }
-
+        //test
     protected abstract int convertToSimpleEvent(int prevCount, Connection con, HashMap map,
                                                 HashMap<String, HashMap> idToMap, String nameAndDate,
                                                 String machineId) throws SQLException, InterruptedException;

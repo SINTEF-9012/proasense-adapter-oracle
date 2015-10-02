@@ -36,9 +36,6 @@ import java.util.*;
 public class IMMAdapter extends AbstractOracleAdapter {
 
     String sensorId;
-    public static void main(String[] args) throws SQLException, ClassNotFoundException, InterruptedException {
-    new IMMAdapter();
-    }
 
     public IMMAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
         super();
@@ -159,5 +156,9 @@ public class IMMAdapter extends AbstractOracleAdapter {
         }
         System.out.println(event.toString());
         outputPort.publishSimpleEvent(event);
+    }
+
+    public static void main(String[] args) throws SQLException, ClassNotFoundException, InterruptedException {
+        new IMMAdapter();
     }
 }
