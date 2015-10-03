@@ -27,3 +27,6 @@ ProaSense Oracle adapter for retrieving Moulding Machine (MM) parameters and Scr
   1.  Username.
   2.  Password.
   3.  URL to oracle database.
+
+* IMM adapter
+  ....
