@@ -28,5 +28,5 @@ ProaSense Oracle adapter for retrieving Moulding Machine (MM) parameters and Scr
   2.  Password.
   3.  URL to oracle database.
 
-* IMM adapter
-  ....
+* Run the program
+  mvn exec:java
