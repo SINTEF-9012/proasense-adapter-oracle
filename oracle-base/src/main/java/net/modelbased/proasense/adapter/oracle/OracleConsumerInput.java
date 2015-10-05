@@ -28,7 +28,7 @@ import java.sql.SQLException;
 public class OracleConsumerInput {
 
     public Connection con;
-
+        //test test
     public OracleConsumerInput(String url, String username, String password) throws ClassNotFoundException, SQLException {
         // Create Oracle connection
         Class.forName("oracle.jdbc.driver.OracleDriver"); // lokasjonen på driveren, har lagt den inn som jar i
