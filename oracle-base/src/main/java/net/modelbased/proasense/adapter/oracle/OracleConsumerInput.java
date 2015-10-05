@@ -19,6 +19,8 @@
 package net.modelbased.proasense.adapter.oracle;
 
 
+import oracle.jdbc.pool.OracleDataSource;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -34,6 +36,11 @@ public class OracleConsumerInput {
 
         //navnet på getConnection er hentet fra addressen som er i minOracle databasen sin properties.
        // this.con = DriverManager.getConnection("jdbc:oracle:thin:@//localhost:1521", "SYSTEM", "1234");
-       this.con = DriverManager.getConnection(url, username, password);
+        OracleDataSource ods = new OracleDataSource();
+        ods.setURL(url);
+        ods.setUser(username);
+        ods.setPassword(password);
+      // this.con = DriverManager.getConnection(url, username, password);
+        this.con = ods.getConnection();
     }
 }

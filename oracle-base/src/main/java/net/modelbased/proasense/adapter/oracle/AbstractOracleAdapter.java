@@ -38,6 +38,7 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
     HashMap objectToValueMap = null;
     HashMap<String, HashMap> idToMap = null;
     String sensorId;
+    long delay;
     public AbstractOracleAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
         // Oracle input port properties
 
@@ -45,6 +46,9 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
         String username = adapterProperties.getProperty("proasense.adapter.oracle.username");
         String password = adapterProperties.getProperty("proasense.adapter.oracle.password");
         String globalTableName = adapterProperties.getProperty("proasense.adapter.oracle.DBTableName1");
+        String rawDelayValue = adapterProperties.getProperty("proasense.adapter.oracle.poll.interval");
+        String sid = adapterProperties.getProperty("proasense.adapter.oracle.sid");
+        delay = Long.parseLong(rawDelayValue);
         // gir moulding som sensorId
         String sensor_id = adapterProperties.getProperty("proasense.adapter.base.sensorid");
         this.sensorId = sensor_id;
@@ -61,7 +65,7 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
 
         objectToValueMap = createNameMap(objectTag, objectValue);
         idToMap = createIdToValueMap(reference_id_mapping, id_tags); // alle id fikk en mapping med id-nr og string type.
-        this.inputPort = new OracleConsumerInput(url, username, password);
+        this.inputPort = new OracleConsumerInput(url+"/"+sid, username, password);
         Connection con = inputPort.con;
 
         checkForLatestTable(con, globalTableName);

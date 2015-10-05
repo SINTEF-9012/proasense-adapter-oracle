@@ -36,6 +36,7 @@ import java.util.*;
 public class IMMAdapter extends AbstractOracleAdapter {
 
     String sensorId;
+    long delay;
 
     public IMMAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
         super();
@@ -45,6 +46,7 @@ public class IMMAdapter extends AbstractOracleAdapter {
     protected int convertToSimpleEvent(int prevCount, Connection con, HashMap map,HashMap idToMap,
                                        String nameAndDate, String sensorId) throws SQLException, InterruptedException {
         this.sensorId = sensorId;
+        this.delay = delay;
         LocalDate localDate = new LocalDate();
         String[] tableNameAndDate = nameAndDate.split(",");
         String creationDate[] = tableNameAndDate[1].split(" ");
@@ -52,7 +54,7 @@ public class IMMAdapter extends AbstractOracleAdapter {
         int newRowCount = 0;
 
         while(true){
-            Thread.sleep(3000);
+            Thread.sleep(delay);
             java.sql.PreparedStatement statement = con.prepareStatement("select count(*) from "+tableName);
             ResultSet result = statement.executeQuery();
 
