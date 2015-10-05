@@ -23,10 +23,11 @@ ProaSense Oracle adapter for retrieving Moulding Machine (MM) parameters and Scr
   mvn clean install 
 
 # User guide
-  Certain information is needed to connect to the database:
+  Certain information must be added to the properties file to connect to the database, information is needed for:
   1.  Username.
   2.  Password.
   3.  URL to oracle database.
+  4.  Name of the schema to read rows from.
 
 * Run the program
   mvn exec:java
