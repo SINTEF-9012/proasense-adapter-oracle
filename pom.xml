@@ -4,15 +4,16 @@
 
     <groupId>net.modelbased.proasense</groupId>
     <artifactId>proasense-adapter-oracle</artifactId>
-    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>proasense-adapter-oracle</name>
+    <url>https://github.com/SINTEF-9012/proasense-adapter-oracle</url>
+
     <modules>
         <module>oracle-base</module>
         <module>oracle-imm</module>
         <module>oracle-scrap</module>
     </modules>
-    <name>proasense-adapter-oracle</name>
-    <url>https://github.com/SINTEF-9012/proasense-adapter-oracle</url>
 
     <repositories>
         <repository>
