@@ -30,3 +30,7 @@ ProaSense Oracle adapter for retrieving Moulding Machine (MM) parameters and Scr
 
 * Run the program
   mvn exec:java
+
+# Test data
+  A program has been developed to generate sample schema with necessary values.
+  Program is located in test.net.modelbased.proasense.adapter.imm, this program will generate 101 row for the IMM schema       located in oracle database.
