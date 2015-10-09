@@ -52,15 +52,18 @@ public class IMMAdapter extends AbstractOracleAdapter {
         String creationDate[] = tableNameAndDate[1].split(" ");
         String tableName = tableNameAndDate[0];
         int newRowCount = 0;
+        ResultSet result;
+        java.sql.PreparedStatement statement;
 
         while(true){
             Thread.sleep(delay);
-            java.sql.PreparedStatement statement = con.prepareStatement("select count(*) from "+tableName);
-            ResultSet result = statement.executeQuery();
+            statement = con.prepareStatement("select count(*) from " + tableName);
+            result = statement.executeQuery();
 
 
-            if(result.next())newRowCount = Integer.parseInt(result.getString(1));
-            //System.out.println(newRowCount+" tableName "+tableName);
+            if(result.next()){
+                newRowCount = Integer.parseInt(result.getString(1));
+            }
 
             if(creationDate[0].compareTo(localDate.toString()) < 0){
                 try {
@@ -69,7 +72,6 @@ public class IMMAdapter extends AbstractOracleAdapter {
                     e.printStackTrace();
                 }
                 prevCount = newRowCount;
-               // System.out.println("prevCount = "+prevCount+" newCount = "+newRowCount);
                 return prevCount;
             }
 
@@ -79,8 +81,7 @@ public class IMMAdapter extends AbstractOracleAdapter {
                 e.printStackTrace();
             }
             prevCount = newRowCount;
-            //
-            // System.out.println("prevCount = "+prevCount+" newCount = "+newRowCount);
+            statement.close();
         }
     }
 
@@ -116,9 +117,8 @@ public class IMMAdapter extends AbstractOracleAdapter {
                 }else if(split_id_mapping[1].equals("DOUBLE")){
                     if(!tempMap.containsKey(split_id_mapping[0])){
                         tempMap.put(split_id_mapping[0]+","+split_id_mapping[1], result.getString(8));
-                       // System.out.println("split_id er "+split_id_mapping[0] + " str er "+tempMap.size());
                     }
-                    if(tempMap.size() == 8){
+                    if(tempMap.size() == 7){
                         outputToBroker(date, tempMap);
                         tempMap.clear();
                         tempMap.put("machineId,STRING",refId);
@@ -126,6 +126,7 @@ public class IMMAdapter extends AbstractOracleAdapter {
                 }
             }
         }
+        statement.close();
     }
 
     public String[] splitValues(String valuesToSplit){
@@ -134,6 +135,7 @@ public class IMMAdapter extends AbstractOracleAdapter {
     }
 
     public void outputToBroker(long date, HashMap<String, HashMap> mapValueAndType){
+
         SimpleEvent event = new SimpleEvent();
         event.setTimestamp(date);
         event.setSensorId(sensorId);

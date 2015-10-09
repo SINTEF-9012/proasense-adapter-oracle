@@ -108,7 +108,6 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
             ResultSet resultSet = statement.executeQuery();
 
             if(resultSet.next()){
-                System.out.println("tabell er "+resultSet.getString(1)+" prev tbl er "+prevTableName);
                 if(!(resultSet.getString(1).equals(prevTableName))) prevCount = 0;
                rowCount =  convertToSimpleEvent(prevCount,con, objectToValueMap, idToMap ,
                        resultSet.getString(1)+","+resultSet.getString(2), sensorId);
@@ -121,7 +120,7 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
             }
             prevCount = rowCount;
             prevTableName = resultSet.getString(1);
-            System.out.println("er i ytre while.");
+            System.out.println("Back in outer loop.");
         }
     }
 
