@@ -1,4 +1,4 @@
-package test.net.modelbased.proasense.adapter.imm;
+package net.modelbased.proasense.adapter.imm;
 
 import java.util.Random;
 
@@ -40,7 +40,7 @@ public class GenQueries {
 
     String getReferenceId(int i){
 
-        String ref[] = {"6128649", "6128634", "6128630", "6154722", "6154721"};
+        String ref[] = {"61282649", "61282634", "61282630", "61542722", "61542721"};
         int k = i%ref.length;
         return ref[k];
     }
