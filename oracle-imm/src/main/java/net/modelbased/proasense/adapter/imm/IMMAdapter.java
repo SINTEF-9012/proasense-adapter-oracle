@@ -60,7 +60,9 @@ public class IMMAdapter extends AbstractOracleAdapter {
             statement = con.prepareStatement("select count(*) from " + tableName);
             result = statement.executeQuery();
 
+            Thread.sleep(3000);
 
+            logger.debug("still in inner loop");
             if(result.next()){
                 newRowCount = Integer.parseInt(result.getString(1));
             }
@@ -109,7 +111,7 @@ public class IMMAdapter extends AbstractOracleAdapter {
                 if(split_id_mapping[1].equals("STRING")){
                     if(!tempMap.containsKey(split_id_mapping[0]))
                         tempMap.put(split_id_mapping[0] + "," + split_id_mapping[1], refId);
-                    if(tempMap.size() == 8){
+                    if(tempMap.size() == 7){
                         outputToBroker(date, tempMap);
                         tempMap.clear();
                         tempMap.put("machineId,STRING", refId);

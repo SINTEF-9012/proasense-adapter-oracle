@@ -120,7 +120,7 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
             }
             prevCount = rowCount;
             prevTableName = resultSet.getString(1);
-            System.out.println("Back in outer loop.");
+            logger.debug("Back in outer loop.");
         }
     }
 
