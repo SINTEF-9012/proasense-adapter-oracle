@@ -22,6 +22,8 @@ import eu.proasense.internal.ComplexValue;
 import eu.proasense.internal.SimpleEvent;
 import eu.proasense.internal.VariableType;
 import net.modelbased.proasense.adapter.oracle.AbstractOracleAdapter;
+import net.modelbased.proasense.adapter.oracle.OracleConsumerInput;
+import org.apache.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -31,27 +33,46 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 
 
-public class ScrapOracleReader extends AbstractOracleAdapter {
+public class ScrapOracleReader implements Runnable {
+    public final static Logger logger = Logger.getLogger(ScrapOracleReader.class);
+
+    private BlockingQueue<SimpleEvent> queue;
+    private long startTime;
+    private OracleConsumerInput inputPort;
 
 
-    public static void main(String[] args) throws SQLException, ClassNotFoundException, InterruptedException {
-        new ScrapOracleReader();
-    }
-
-    public ScrapOracleReader() throws SQLException, ClassNotFoundException, InterruptedException {
+    public ScrapOracleReader(BlockingQueue<SimpleEvent> queue, long startTime, OracleConsumerInput inputPort) throws SQLException, ClassNotFoundException, InterruptedException {
+        this.queue = queue;
+        this.startTime = startTime;
+        this.inputPort = inputPort;
     }
 
 
     @Override
-    protected int convertToSimpleEvent(int prevCount, Connection con, HashMap map, HashMap<String, HashMap> idToMap, String nameAndDate, String machineId) throws SQLException, InterruptedException {
-        return 0;
+    public void run() {
+
+        try {
+            // 1. Query database every POLL_TIME and get results
+            ResultSet result = new ResultSet();
+
+            // 2. Convert to simple events
+            SimpleEvent event = convertToSimpleEvent(result);
+
+            // 3. Put simple events on queue
+            queue.put(event);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
 
-    protected void convertToSimpleEvent(ResultSet values) throws SQLException {
-
+    private SimpleEvent convertToSimpleEvent(ResultSet values) throws SQLException {
         //give value to every item from each row from database.
         String workplace = values.getString(1);
         String type = values.getString(2);
@@ -107,9 +128,7 @@ public class ScrapOracleReader extends AbstractOracleAdapter {
         complexValue.setType(VariableType.STRING);
         eventProperties.put("finalArticle", complexValue);
 
-        simpleEvent.eventProperties = eventProperties;
-        SimpleEvent event = outputPort.createSimpleEvent(sensorId, convertDate_timeStamp, eventProperties);
-        logger.debug(event.toString());
-        outputPort.publishSimpleEvent(event);
+        return simpleEvent;
     }
+
 }
