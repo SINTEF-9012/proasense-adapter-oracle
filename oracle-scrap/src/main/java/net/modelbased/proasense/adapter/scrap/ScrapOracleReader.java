@@ -33,14 +33,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class ScrapAdapter extends AbstractOracleAdapter {
+public class ScrapOracleReader extends AbstractOracleAdapter {
 
 
     public static void main(String[] args) throws SQLException, ClassNotFoundException, InterruptedException {
-        new ScrapAdapter();
+        new ScrapOracleReader();
     }
 
-    public ScrapAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
+    public ScrapOracleReader() throws SQLException, ClassNotFoundException, InterruptedException {
     }
 
 
