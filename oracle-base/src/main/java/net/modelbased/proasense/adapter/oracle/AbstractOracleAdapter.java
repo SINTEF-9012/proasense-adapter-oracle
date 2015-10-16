@@ -37,23 +37,23 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
     public final static Logger logger = Logger.getLogger(AbstractOracleAdapter.class);
     HashMap objectToValueMap = null;
     HashMap<String, HashMap> idToMap = null;
-    String sensorId;
-    long delay;
+
+    String url = adapterProperties.getProperty("proasense.adapter.oracle.url");
+    String username = adapterProperties.getProperty("proasense.adapter.oracle.username");
+    String password = adapterProperties.getProperty("proasense.adapter.oracle.password");
+    String rawDelayValue = adapterProperties.getProperty("proasense.adapter.oracle.poll.interval");
+    String sid = adapterProperties.getProperty("proasense.adapter.oracle.sid");
+    public long delay = Long.parseLong(rawDelayValue);
+    // gir moulding som sensorId
+    public String sensor_id;
+
     public AbstractOracleAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
         // Oracle input port properties
+        this.inputPort = new OracleConsumerInput(url+"/"+sid, username, password);
+        sensor_id = adapterProperties.getProperty("proasense.adapter.base.sensorid");
 
-        String url = adapterProperties.getProperty("proasense.adapter.oracle.url");
-        String username = adapterProperties.getProperty("proasense.adapter.oracle.username");
-        String password = adapterProperties.getProperty("proasense.adapter.oracle.password");
-        String globalTableName = adapterProperties.getProperty("proasense.adapter.oracle.DBTableName1");
-        String rawDelayValue = adapterProperties.getProperty("proasense.adapter.oracle.poll.interval");
-        String sid = adapterProperties.getProperty("proasense.adapter.oracle.sid");
-        delay = Long.parseLong(rawDelayValue);
-        // gir moulding som sensorId
-        String sensor_id = adapterProperties.getProperty("proasense.adapter.base.sensorid");
-        this.sensorId = sensor_id;
         // gir nr på maskinene  som er mappet til og id_tags som er sensorId:String
-        String reference_id_mapping = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.mapping");
+    /*    String reference_id_mapping = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.mapping");
         String reference_id_tags = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.tags");
         // gir alle ord vi skal sammenligne med, som cycleTime og hvordan mappingen er, eks cycleTime:DOUBLE
         String object_id_tag = adapterProperties.getProperty("proasense.adapter.oracle.imm.object_id.tags");
@@ -145,4 +145,6 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
     protected abstract int convertToSimpleEvent(int prevCount, Connection con, HashMap map,
                                                 HashMap<String, HashMap> idToMap, String nameAndDate,
                                                 String machineId) throws SQLException, InterruptedException;
+*/
+    }
 }

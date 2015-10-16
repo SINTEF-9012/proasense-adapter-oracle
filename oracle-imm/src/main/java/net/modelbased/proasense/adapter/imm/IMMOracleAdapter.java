@@ -22,24 +22,120 @@ import eu.proasense.internal.ComplexValue;
 import eu.proasense.internal.SimpleEvent;
 import eu.proasense.internal.VariableType;
 import net.modelbased.proasense.adapter.oracle.AbstractOracleAdapter;
+import net.modelbased.proasense.adapter.oracle.OracleConsumerInput;
+import org.apache.log4j.Logger;
 import org.joda.time.LocalDate;
 
-import java.lang.reflect.MalformedParameterizedTypeException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 
-public class IMMAdapter extends AbstractOracleAdapter {
+public class IMMOracleAdapter extends AbstractOracleAdapter {
 
-    String sensorId;
     long delay;
+    String sensorId;
 
-    public IMMAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
+    public final static Logger logger = Logger.getLogger(AbstractOracleAdapter.class);
+    HashMap objectToValueMap = null;
+    HashMap<String, HashMap> idToMap = null;
+
+    String reference_id_mapping = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.mapping");
+    String reference_id_tags = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.tags");
+    // gir alle ord vi skal sammenligne med, som cycleTime og hvordan mappingen er, eks cycleTime:DOUBLE
+    String object_id_tag = adapterProperties.getProperty("proasense.adapter.oracle.imm.object_id.tags");
+    String object_id_mapping = adapterProperties.getProperty("proasense.adapter.oracle.imm.object_id.mapping");
+    String globalTableName = adapterProperties.getProperty("proasense.adapter.oracle.DBTableName1");
+
+
+    String id_tags[] = reference_id_tags.split(",");
+    String objectTag[] = object_id_tag.split(",");
+    String objectValue[] = object_id_mapping.split(",");
+
+
+
+
+    HashMap createNameMap(String[] objectId, String[] nameAndValues){
+        HashMap map = new HashMap();
+
+        for(int i = 0; i < objectId.length; i++){
+            map.put(objectId[i], nameAndValues[i]);
+        }
+        return map;
+    }
+
+
+    public long convertDate(String date){
+        long timestamp = 0;
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd hh:mm:ss");
+        try {
+            Date convertedDate = dateFormat.parse(date);
+            timestamp = convertedDate.getTime();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return timestamp;
+    }
+
+    public void  checkForLatestTable(Connection con, String globalTableName) throws SQLException, InterruptedException {
+        String newTableName = "'"+trimTableName(globalTableName)+"%'";
+        String prevTableName = "";
+        int rowCount = 0;
+        int prevCount = 0;
+
+        while(true) {
+
+            java.sql.PreparedStatement statement = con.prepareStatement("select * from(select object_name, created " +
+                    "from SYS.USER_OBJECTS where object_name like "+newTableName+" order by created desc)\n" +
+                    "  where rownum = 1");
+
+            ResultSet resultSet = statement.executeQuery();
+
+            if(resultSet.next()){
+                if(!(resultSet.getString(1).equals(prevTableName))) prevCount = 0;
+                rowCount =  convertToSimpleEvent(prevCount,con, objectToValueMap, idToMap ,
+                        resultSet.getString(1)+","+resultSet.getString(2), sensor_id);
+            }
+
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            prevCount = rowCount;
+            prevTableName = resultSet.getString(1);
+            logger.debug("Back in outer loop.");
+        }
+    }
+
+
+    String trimTableName(String nameFromProperties){
+        return nameFromProperties.substring(0, 5);
+    }
+
+    HashMap<String, HashMap> createIdToValueMap(String refId, String[] id_tags){
+        HashMap<String, HashMap> machines = new HashMap<String, HashMap>();
+        HashMap values = new HashMap();
+
+        String[] ref_id_tag = refId.split(":");
+
+        for(int i = 0; i < id_tags.length; i++){
+            values.put(ref_id_tag[0] +","+ ref_id_tag[1], id_tags[i]);
+            machines.put(id_tags[i], values);
+        }
+        return  machines;
+    }
+
+    public IMMOracleAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
         super();
+
+        objectToValueMap = createNameMap(objectTag, objectValue);
+        idToMap = createIdToValueMap(reference_id_mapping, id_tags); // alle id fikk en mapping med id-nr og string type.
+        Connection con = inputPort.con;
+
+        checkForLatestTable(con, globalTableName);
 
     }
 
@@ -165,6 +261,6 @@ public class IMMAdapter extends AbstractOracleAdapter {
     }
 
     public static void main(String[] args) throws SQLException, ClassNotFoundException, InterruptedException {
-        new IMMAdapter();
+        new IMMOracleAdapter();
     }
 }
