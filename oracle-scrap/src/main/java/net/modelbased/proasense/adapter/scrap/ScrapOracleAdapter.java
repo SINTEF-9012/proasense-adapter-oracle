@@ -18,5 +18,35 @@
  */
 package net.modelbased.proasense.adapter.scrap;
 
-public class ScrapOracleAdapter {
+import net.modelbased.proasense.adapter.oracle.AbstractOracleAdapter;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.HashMap;
+
+
+public class ScrapOracleAdapter extends AbstractOracleAdapter {
+    public final static Logger logger = Logger.getLogger(ScrapOracleAdapter.class);
+
+
+    public ScrapOracleAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
+        // Get specific adapter properties
+        String S_WSDL_URL = adapterProperties.getProperty("proasense.adapter.webservice.wsdl.url");
+        boolean B_TEST_ENABLED = new Boolean(adapterProperties.getProperty("proasense.adapter.riglogger.test.enabled")).booleanValue();
+        int I_CONFIG_TIMEDELAY = new Integer(adapterProperties.getProperty("proasense.adapter.riglogger.config.timedelay")).intValue();
+        String[] S_CONFIG_POINTS = adapterProperties.getProperty("proasense.adapter.riglogger.config.points").split(",");
+    }
+
+
+    @Override
+    protected int convertToSimpleEvent(int prevCount, Connection con, HashMap map, HashMap<String, HashMap> idToMap, String nameAndDate, String machineId) throws SQLException, InterruptedException {
+        return 0;
+    }
+
+
+    public static void main(String[] args) throws SQLException, ClassNotFoundException, InterruptedException {
+        new ScrapOracleAdapter();
+    }
 }
