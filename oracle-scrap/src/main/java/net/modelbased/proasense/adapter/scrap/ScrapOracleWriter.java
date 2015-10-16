@@ -24,6 +24,7 @@ import net.modelbased.proasense.adapter.base.KafkaProducerOutput;
 import org.apache.log4j.Logger;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 
 public class ScrapOracleWriter implements Runnable {
@@ -35,8 +36,41 @@ public class ScrapOracleWriter implements Runnable {
 
     long lastTimestamp;
 
+
+    public ScrapOracleWriter(BlockingQueue<SimpleEvent> queue, long startTime, KafkaProducerOutput outputPort) {
+        this.queue = queue;
+        this.startTime = startTime;
+        this.outputPort = outputPort;
+
+        this.lastTimestamp = this.startTime;
+    }
+
+
     @Override
     public void run() {
+        while (true) {
+            try {
+                // Read simple event from queue
+                SimpleEvent event = queue.take();
+
+                // Check timestamp
+                long eventTimestamp = event.getTimestamp();
+                long timeDiff = eventTimestamp - this.lastTimestamp;
+                if (timeDiff > 0) {
+                    TimeUnit.MILLISECONDS.sleep(timeDiff);
+                }
+
+                // Publish simple event
+                this.outputPort.publishSimpleEvent(event);
+                logger.debug("simpleEvent = " + event.toString());
+
+                // Update timestamps
+                this.lastTimestamp = eventTimestamp;
+            }
+            catch (Exception e) {
+                System.out.println(e.getClass().getName() + ": " + e.getMessage());
+            }
+        }
 
     }
 }
