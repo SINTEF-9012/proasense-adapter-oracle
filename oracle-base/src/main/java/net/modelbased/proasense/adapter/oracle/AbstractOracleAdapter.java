@@ -43,14 +43,12 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
     String password = adapterProperties.getProperty("proasense.adapter.oracle.password");
     String rawDelayValue = adapterProperties.getProperty("proasense.adapter.oracle.poll.interval");
     String sid = adapterProperties.getProperty("proasense.adapter.oracle.sid");
-    public long delay = Long.parseLong(rawDelayValue);
-    // gir moulding som sensorId
-    public String sensor_id;
+    long delay = Long.parseLong(rawDelayValue);
+    public String sensor_id = adapterProperties.getProperty("proasense.adapter.base.sensorid");
 
     public AbstractOracleAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
         // Oracle input port properties
         this.inputPort = new OracleConsumerInput(url+"/"+sid, username, password);
-        sensor_id = adapterProperties.getProperty("proasense.adapter.base.sensorid");
 
         // gir nr på maskinene  som er mappet til og id_tags som er sensorId:String
     /*    String reference_id_mapping = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.mapping");

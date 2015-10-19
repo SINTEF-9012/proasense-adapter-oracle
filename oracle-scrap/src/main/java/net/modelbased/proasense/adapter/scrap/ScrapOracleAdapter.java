@@ -60,7 +60,7 @@ public class ScrapOracleAdapter extends AbstractOracleAdapter {
         ExecutorService executor = Executors.newFixedThreadPool(NO_TOTAL_THREADS);
 
         // Create thread for Scrap reader
-        workers.add(new ScrapOracleReader(queue, scrapConfig, startTime, this.inputPort));
+        workers.add(new ScrapOracleReader(queue, scrapConfig, startTime, this.inputPort, sensor_id));
 
         // Create thread for Scrap writer
         workers.add(new ScrapOracleWriter(queue, startTime, this.outputPort));
