@@ -58,12 +58,11 @@ public class ScrapOracleReader implements Runnable {
         java.sql.PreparedStatement statement = null;
 
         try {
-            statement = con.prepareStatement("SET linesize 360;\n" +
-                    "select ANLAGE_DATE as CREATED_DATE, ANLAGE_TIME as CREATED_TIME,\n" +
+            statement = con.prepareStatement("select ANLAGE_DATE as CREATED_DATE, ANLAGE_TIME as CREATED_TIME,\n" +
                     "AUFTRAGS_BESTAND.BEARB_DATE, AUFTRAGS_BESTAND.BEARB_TIME,\n" +
                     "AUFTRAGS_BESTAND.MASCH_NR as MACHINE_NO,\n" +
-                    "ADE_AUFTRAGMENGEN.auftrag_nr as ORDER_OPERATION_NO,\n" +
-                    "IST_PRI as SCRAP_COUNT, GRUNDTEXT as SCRAP_REASON,\n" +
+                    "AUFTRAGS_BESTAND.AUFTRAG_NR as ORDER_OPERATION_NO,\n" +
+                    "ADE_AUFTRAGMENGEN.IST_PRI as SCRAP_COUNT, ADE_GRUND_TEXTE.GRUNDTEXT as SCRAP_REASON,\n" +
                     "ARTIKEL as FINAL_ARTICLE\n" +
                     "from AUFTRAGS_BESTAND\n" +
                     "\n" +
@@ -76,9 +75,7 @@ public class ScrapOracleReader implements Runnable {
                     "\n" +
                     "where AUFTRAG_STATUS.A_STATUS = 'E'\n" +
                     "and\n" +
-                    "AUFTRAGS_BESTAND.MASCH_NR IS NOT NULL\n" +
-                    "and\n" +
-                    "auftrags_bestand.BEARB_DATE = TO_DATE(TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD'),'YYYY-MM-DD') - 1");
+                    "AUFTRAGS_BESTAND.MASCH_NR IS NOT NULL");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -88,7 +85,7 @@ public class ScrapOracleReader implements Runnable {
             ResultSet result = statement.executeQuery();
             SimpleEvent event = null;
             while (result.next()) {
-                System.out.println(result.getString(1));
+                System.out.println(result.getString(9));
                 // 2. Convert to simple events
 
                 // event = convertToSimpleEvent(result);
