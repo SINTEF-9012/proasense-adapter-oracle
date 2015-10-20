@@ -49,7 +49,7 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
     public AbstractOracleAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
         // Oracle input port properties
         this.inputPort = new OracleConsumerInput(url+"/"+sid, username, password);
-
+        System.out.println("ferdig med Con, input er "+inputPort);
         // gir nr på maskinene  som er mappet til og id_tags som er sensorId:String
     /*    String reference_id_mapping = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.mapping");
         String reference_id_tags = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.tags");

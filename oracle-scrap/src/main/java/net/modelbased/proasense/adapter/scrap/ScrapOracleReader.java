@@ -48,7 +48,7 @@ public class ScrapOracleReader implements Runnable {
         this.queue = queue;
         this.startTime = startTime;
         this.sensor_id = sensor_id;
-        con = inputPort.con;
+        this.con = inputPort.con;
     }
 
 
@@ -58,11 +58,12 @@ public class ScrapOracleReader implements Runnable {
         java.sql.PreparedStatement statement = null;
 
         try {
-            statement = con.prepareStatement("select ANLAGE_DATE as CREATED_DATE, ANLAGE_TIME as CREATED_TIME,\n" +
+            statement = con.prepareStatement(
+                    "select ANLAGE_DATE as CREATED_DATE, ANLAGE_TIME as CREATED_TIME,\n" +
                     "AUFTRAGS_BESTAND.BEARB_DATE, AUFTRAGS_BESTAND.BEARB_TIME,\n" +
                     "AUFTRAGS_BESTAND.MASCH_NR as MACHINE_NO,\n" +
-                    "AUFTRAGS_BESTAND.AUFTRAG_NR as ORDER_OPERATION_NO,\n" +
-                    "IST_PRI as SCRAP_COUNT, GRUNDTEXT as SCRAP_REASON,\n" +
+                    "ADE_AUFTRAGMENGEN.AUFTRAG_NR as ORDER_OPERATION_NO,\n" +
+                    "IST_PRI as SCRAP_COUNT, GRUND_TEXT as SCRAP_REASON,\n" +
                     "ARTIKEL as FINAL_ARTICLE\n" +
                     "from AUFTRAGS_BESTAND\n" +
                     "\n" +
@@ -84,14 +85,18 @@ public class ScrapOracleReader implements Runnable {
             // 1. Query database every POLaL_TIME and get results
             ResultSet result = statement.executeQuery();
             SimpleEvent event = null;
-            while (result.next()) {
-                System.out.println(result.getString(8));
-                // 2. Convert to simple events
 
+            logger.debug(result.next());
+
+            while (result.next()) {
+                // 2. Convert to simple events
+                logger.debug(result.getString(1));
                 event = convertToSimpleEvent(result);
             }
             // 3. Put simple events on queue
-            //queue.put(event);
+
+               // queue.put(event);
+
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -111,52 +116,46 @@ public class ScrapOracleReader implements Runnable {
         String SCRAP_REASON = values.getString(8);
         String FINAL_ARTICLE = values.getString(9);
 
-        //Conversion of date from string to long.
+        SimpleEvent simpleEvent = createPrefix(sensor_id, CREATED_DATE);
+
+        simpleEvent.putToEventProperties("machineId", createFullSimpleEvent(MACHINE_NO, VariableType.STRING));
+        simpleEvent.putToEventProperties("quantity", createFullSimpleEvent(SCRAP_COUNT, VariableType.LONG));
+        simpleEvent.putToEventProperties("designation", createFullSimpleEvent(SCRAP_REASON, VariableType.STRING));
+
+        if(SCRAP_REASON.equals("1011") || SCRAP_REASON.equals("2011")){
+            simpleEvent.putToEventProperties("goodPart", createFullSimpleEvent("TRUE", VariableType.BOOLEAN));
+        }else{
+            simpleEvent.putToEventProperties("goodPart", createFullSimpleEvent("FALSE", VariableType.BOOLEAN));
+        }
+        simpleEvent.putToEventProperties("finalArticle", createFullSimpleEvent(FINAL_ARTICLE, VariableType.STRING));
+
+        return simpleEvent;
+    }
+
+    SimpleEvent createPrefix(String sensorId, String firstDate){
+        SimpleEvent simpleEvent = new SimpleEvent();
+
         long convertDate_timeStamp = 0;
-        String sensorId = sensor_id;
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
         try {
-            Date date = dateFormat.parse(CREATED_DATE);
+            Date date = dateFormat.parse(firstDate);
             convertDate_timeStamp = date.getTime();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        SimpleEvent simpleEvent = new SimpleEvent();
-/*        Map<String, ComplexValue> eventProperties = new HashMap<String, ComplexValue>();
-
-        ComplexValue complexValue = new ComplexValue();
-        complexValue.setValue(workplace);
-        complexValue.setType(VariableType.STRING);
-        eventProperties.put("machineId", complexValue); // workplace kan forandres, usikker på hva som er ID.
-
-        complexValue = new ComplexValue();
-        complexValue.setValue(type);
-        complexValue.setType(VariableType.STRING);
-        eventProperties.put("type", complexValue);
-
-        complexValue = new ComplexValue();
-        complexValue.setValue(scrap);
-        complexValue.setType(VariableType.LONG);
-        eventProperties.put("scrap", complexValue);
-
-        complexValue = new ComplexValue();
-        complexValue.setValue(reasonText);
-        complexValue.setType(VariableType.STRING);
-        eventProperties.put("reasonText", complexValue);
-
-        complexValue = new ComplexValue();
-        complexValue.setValue(designation);
-        complexValue.setType(VariableType.STRING);
-        eventProperties.put("designation", complexValue);
-
-        complexValue = new ComplexValue();
-        complexValue.setValue(finalArticle);
-        complexValue.setType(VariableType.STRING);
-        eventProperties.put("finalArticle", complexValue); */
-
+        simpleEvent.setSensorId(sensorId);
+        simpleEvent.setTimestamp(convertDate_timeStamp);
         return simpleEvent;
+    }
+
+    ComplexValue createFullSimpleEvent(String value, VariableType type){
+        ComplexValue complexValue = new ComplexValue();
+        complexValue.setValue(value);
+        complexValue.setType(type);
+
+        return complexValue;
     }
 
 }
