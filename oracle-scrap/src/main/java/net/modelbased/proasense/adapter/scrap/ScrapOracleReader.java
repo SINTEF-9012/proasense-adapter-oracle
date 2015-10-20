@@ -62,7 +62,7 @@ public class ScrapOracleReader implements Runnable {
                     "AUFTRAGS_BESTAND.BEARB_DATE, AUFTRAGS_BESTAND.BEARB_TIME,\n" +
                     "AUFTRAGS_BESTAND.MASCH_NR as MACHINE_NO,\n" +
                     "AUFTRAGS_BESTAND.AUFTRAG_NR as ORDER_OPERATION_NO,\n" +
-                    "ADE_AUFTRAGMENGEN.IST_PRI as SCRAP_COUNT, ADE_GRUND_TEXTE.GRUNDTEXT as SCRAP_REASON,\n" +
+                    "IST_PRI as SCRAP_COUNT, GRUNDTEXT as SCRAP_REASON,\n" +
                     "ARTIKEL as FINAL_ARTICLE\n" +
                     "from AUFTRAGS_BESTAND\n" +
                     "\n" +
@@ -85,10 +85,10 @@ public class ScrapOracleReader implements Runnable {
             ResultSet result = statement.executeQuery();
             SimpleEvent event = null;
             while (result.next()) {
-                System.out.println(result.getString(9));
+                System.out.println(result.getString(8));
                 // 2. Convert to simple events
 
-                // event = convertToSimpleEvent(result);
+                event = convertToSimpleEvent(result);
             }
             // 3. Put simple events on queue
             //queue.put(event);
@@ -101,29 +101,30 @@ public class ScrapOracleReader implements Runnable {
 
     private SimpleEvent convertToSimpleEvent(ResultSet values) throws SQLException {
         //give value to every item from each row from database.
-        String workplace = values.getString(1);
-        String type = values.getString(2);
-        String scrap = values.getString(3);
-        String reasonText = values.getString(4);
-        String designation = values.getString(5);
-        String finalArticle = values.getString(6);
-        String measurementTime = values.getString(7);   //timestamp
+        String CREATED_DATE = values.getString(1);
+        String CREATED_TIME = values.getString(2);
+        String BEARB_DATE = values.getString(3);
+        String BEARB_TIME = values.getString(4);
+        String MACHINE_NO = values.getString(5);
+        String ORDER_OPERATION_NO = values.getString(6);
+        String SCRAP_COUNT = values.getString(7);
+        String SCRAP_REASON = values.getString(8);
+        String FINAL_ARTICLE = values.getString(9);
 
         //Conversion of date from string to long.
         long convertDate_timeStamp = 0;
         String sensorId = sensor_id;
 
-        DateFormat dateFormat = new SimpleDateFormat("dd/mm/yyyy HH:mm:ss");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
         try {
-            Date date = dateFormat.parse(measurementTime);
+            Date date = dateFormat.parse(CREATED_DATE);
             convertDate_timeStamp = date.getTime();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-
         SimpleEvent simpleEvent = new SimpleEvent();
-        Map<String, ComplexValue> eventProperties = new HashMap<String, ComplexValue>();
+/*        Map<String, ComplexValue> eventProperties = new HashMap<String, ComplexValue>();
 
         ComplexValue complexValue = new ComplexValue();
         complexValue.setValue(workplace);
@@ -153,7 +154,7 @@ public class ScrapOracleReader implements Runnable {
         complexValue = new ComplexValue();
         complexValue.setValue(finalArticle);
         complexValue.setType(VariableType.STRING);
-        eventProperties.put("finalArticle", complexValue);
+        eventProperties.put("finalArticle", complexValue); */
 
         return simpleEvent;
     }
