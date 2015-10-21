@@ -86,11 +86,9 @@ public class ScrapOracleReader implements Runnable {
             ResultSet result = statement.executeQuery();
             SimpleEvent event = null;
 
-            logger.debug(result.next());
-
             while (result.next()) {
                 // 2. Convert to simple events
-                logger.debug(result.getString(1));
+                logger.debug(result.toString());
                 event = convertToSimpleEvent(result);
 
             // 3. Put simple events on queue
@@ -100,7 +98,7 @@ public class ScrapOracleReader implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-                logger.debug("Finished with one simopleEvent");
+                logger.debug("Finished with one simpleEvent "+ event.toString());
             }
 
         } catch (SQLException e) {
