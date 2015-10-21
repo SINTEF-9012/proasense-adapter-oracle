@@ -70,6 +70,8 @@ public class ScrapOracleWriter implements Runnable {
             catch (Exception e) {
                 System.out.println(e.getClass().getName() + ": " + e.getMessage());
             }
+
+            logger.debug("Event published.");
         }
 
     }
