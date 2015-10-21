@@ -29,6 +29,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -43,46 +44,59 @@ public class ScrapOracleReader implements Runnable {
     private long startTime;
     private Connection con;
     private String sensor_id;
+    long dateDelay;
+    String currentTime;
+    String prevTime;
+    boolean firstPoll = false;
+
 
     public ScrapOracleReader(BlockingQueue<SimpleEvent> queue, ScrapConfig scrapConfig, long startTime, OracleConsumerInput inputPort, String sensor_id) throws SQLException, ClassNotFoundException, InterruptedException {
         this.queue = queue;
         this.startTime = startTime;
         this.sensor_id = sensor_id;
         this.con = inputPort.con;
+        this.dateDelay = Long.parseLong("15");
+
+        try {
+            generateDates(con);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
     }
 
 
     @Override
     public void run() {
 
+
         java.sql.PreparedStatement statement = null;
 
         try {
             statement = con.prepareStatement(
-                    "select ANLAGE_DATE as CREATED_DATE, ANLAGE_TIME as CREATED_TIME,\n" +
-                            "AUFTRAGS_BESTAND.BEARB_DATE, AUFTRAGS_BESTAND.BEARB_TIME,\n" +
-                            "AUFTRAGS_BESTAND.MASCH_NR as MACHINE_NO,\n" +
-                            "ADE_AUFTRAGMENGEN.AUFTRAG_NR as ORDER_OPERATION_NO,\n" +
-                            "IST_PRI as SCRAP_COUNT, GRUND_TEXT as SCRAP_REASON,\n" +
-                            "ARTIKEL as FINAL_ARTICLE\n" +
-                            "from AUFTRAGS_BESTAND\n" +
-                            "\n" +
-                            "join ADE_AUFTRAGMENGEN  on\n" +
-                            "ADE_AUFTRAGMENGEN.AUFTRAG_NR = AUFTRAGS_BESTAND.AUFTRAG_NR\n" +
-                            "join ADE_GRUND_TEXTE on\n" +
-                            "ADE_AUFTRAGMENGEN.GRUND_TEXT = ADE_GRUND_TEXTE.GRUNDTEXT_NR\n" +
-                            "join AUFTRAG_STATUS on\n" +
-                            "AUFTRAGS_BESTAND.AUFTRAG_NR = AUFTRAG_STATUS.AUFTRAG_NR\n" +
-                            "\n" +
-                            "where AUFTRAG_STATUS.A_STATUS = 'E'\n" +
-                            "and\n" +
-                            "AUFTRAGS_BESTAND.MASCH_NR IS NOT NULL");
+                            "select AUFTRAGS_BESTAND.BEARB_DATE as MEASUREMENT_TIME,\n" +
+                                    "AUFTRAGS_BESTAND.MASCH_NR as MACHINE_NO,\n" +
+                                    "IST_PRI as SCRAP_COUNT, GRUND_TEXT as SCRAP_DESIGNATIONREASON,\n" +
+                                    "ARTIKEL as FINAL_ARTICLE\n" +
+                                    "from AUFTRAGS_BESTAND\n" +
+                                    "\n" +
+                                    "join ADE_AUFTRAGMENGEN  on\n" +
+                                    "ADE_AUFTRAGMENGEN.AUFTRAG_NR = AUFTRAGS_BESTAND.AUFTRAG_NR\n" +
+                                    "join ADE_GRUND_TEXTE on\n" +
+                                    "ADE_AUFTRAGMENGEN.GRUND_TEXT = ADE_GRUND_TEXTE.GRUNDTEXT_NR\n" +
+                                    "join AUFTRAG_STATUS on\n" +
+                                    "AUFTRAGS_BESTAND.AUFTRAG_NR = AUFTRAG_STATUS.AUFTRAG_NR\n" +
+                                    "\n" +
+                                    "where AUFTRAG_STATUS.A_STATUS = 'E'\n" +
+                                    "and\n" +
+                                    "AUFTRAGS_BESTAND.MASCH_NR IS NOT NULL\n" +
+                                    "and\n" +
+                                    "AUFTRAGS_BESTAND.BEARB_DATE between TO_DATE('10-09-2015 20:00:00', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE(TO_CHAR(CURRENT_DATE, 'DD-MM-YYYY HH24:MI:SS'),'DD-MM-YYYY HH24:MI:SS')");
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
         try {
-            // 1. Query database every POLaL_TIME and get results
+            // 1. Query database every POLL_TIME and get results
             ResultSet result = statement.executeQuery();
             SimpleEvent event = null;
 
@@ -110,14 +124,10 @@ public class ScrapOracleReader implements Runnable {
     private SimpleEvent convertToSimpleEvent(ResultSet values) throws SQLException {
         //give value to every item from each row from database.
         String CREATED_DATE = values.getString(1);
-        String CREATED_TIME = values.getString(2);
-        String BEARB_DATE = values.getString(3);
-        String BEARB_TIME = values.getString(4);
-        String MACHINE_NO = values.getString(5);
-        String ORDER_OPERATION_NO = values.getString(6);
-        String SCRAP_COUNT = values.getString(7);
-        String SCRAP_REASON = values.getString(8);
-        String FINAL_ARTICLE = values.getString(9);
+        String MACHINE_NO = values.getString(2);
+        String SCRAP_COUNT = values.getString(3);
+        String SCRAP_REASON = values.getString(4);
+        String FINAL_ARTICLE = values.getString(5);
 
         SimpleEvent simpleEvent = createPrefix(sensor_id, CREATED_DATE);
 
@@ -159,6 +169,56 @@ public class ScrapOracleReader implements Runnable {
         complexValue.setType(type);
 
         return complexValue;
+    }
+
+    public String[] generateDates(Connection con) throws SQLException, ParseException {
+
+        String dateValues[] = new String[2];
+        if(!firstPoll){
+
+            java.sql.PreparedStatement statement = con.prepareStatement("SELECT TO_CHAR\n" +
+                    "    (SYSDATE, 'MM-DD-YYYY HH24:MI:SS') \"NOW\"\n" +
+                    "     FROM DUAL");
+
+            ResultSet resultSet = statement.executeQuery();
+            resultSet.next();
+
+            currentTime = resultSet.getString(1);
+            prevTime = makeFirstDelay(currentTime, dateDelay);
+
+            firstPoll = true;
+        }else {
+
+            java.sql.PreparedStatement statement = con.prepareStatement("SELECT TO_CHAR\n" +
+                    "    (SYSDATE, 'MM-DD-YYYY HH24:MI:SS') \"NOW\"\n" +
+                    "     FROM DUAL");
+
+            ResultSet resultSet = statement.executeQuery();
+            resultSet.next();
+            prevTime = currentTime;
+            currentTime = resultSet.getString(1);
+        }
+
+        dateValues[0] = prevTime;
+        dateValues[1] = currentTime;
+
+        return dateValues;
+    }
+
+    public String makeFirstDelay(String startDate, long substractValue) throws ParseException {
+            long minToMilli = substractValue*60000;
+
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
+        Date date = (Date)formatter.parse(startDate);
+        long mills = date.getTime();
+
+        long delayedMillis = mills - minToMilli;
+
+        Date prevDateTime = new Date(delayedMillis);
+        DateFormat df = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
+        String generatedDate = df.format(prevDateTime);
+
+        return generatedDate;
     }
 
 }

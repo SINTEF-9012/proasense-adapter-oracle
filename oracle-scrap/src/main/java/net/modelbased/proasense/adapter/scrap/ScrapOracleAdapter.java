@@ -36,13 +36,12 @@ import java.util.concurrent.Executors;
 public class ScrapOracleAdapter extends AbstractOracleAdapter {
     public final static Logger logger = Logger.getLogger(ScrapOracleAdapter.class);
 
-
     public ScrapOracleAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
         // Get specific adapter properties
         int I_CONFIG_TIMEDELAY = new Integer(adapterProperties.getProperty("proasense.adapter.scrap.config.timedelay")).intValue();
-
+        String delayOnDate = adapterProperties.getProperty("proasense.adapter.scrap.config.dateDelayInMin");
         // Configure scrap adapter
-        ScrapConfig scrapConfig = new ScrapConfig(this.sensor_id, I_CONFIG_TIMEDELAY);
+        ScrapConfig scrapConfig = new ScrapConfig(this.sensor_id, I_CONFIG_TIMEDELAY, delayOnDate);
 
         // Set initial start time (adjusted with time delay)
         int subtractMinutes = 0 - I_CONFIG_TIMEDELAY;
