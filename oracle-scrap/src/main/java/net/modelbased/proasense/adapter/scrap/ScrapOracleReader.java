@@ -92,11 +92,16 @@ public class ScrapOracleReader implements Runnable {
                 // 2. Convert to simple events
                 logger.debug(result.getString(1));
                 event = convertToSimpleEvent(result);
-            }
+
             // 3. Put simple events on queue
 
-               // queue.put(event);
-
+            try {
+                queue.put(event);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+                logger.debug("Finished with one simopleEvent");
+            }
 
         } catch (SQLException e) {
             e.printStackTrace();
