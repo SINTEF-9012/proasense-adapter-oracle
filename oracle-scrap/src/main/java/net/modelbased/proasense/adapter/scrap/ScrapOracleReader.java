@@ -55,7 +55,7 @@ public class ScrapOracleReader implements Runnable {
         this.startTime = startTime;
         this.sensor_id = sensor_id;
         this.con = inputPort.con;
-        this.dateDelay = Long.parseLong("15");
+        this.dateDelay = Long.parseLong(scrapConfig.getDateDelay());
 
         try {
             generateDates(con);
@@ -68,7 +68,7 @@ public class ScrapOracleReader implements Runnable {
     @Override
     public void run() {
 
-
+        logger.debug("prev time er "+prevTime);
         java.sql.PreparedStatement statement = null;
 
         try {
@@ -90,7 +90,8 @@ public class ScrapOracleReader implements Runnable {
                                     "and\n" +
                                     "AUFTRAGS_BESTAND.MASCH_NR IS NOT NULL\n" +
                                     "and\n" +
-                                    "AUFTRAGS_BESTAND.BEARB_DATE between TO_DATE('10-09-2015 20:00:00', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE(TO_CHAR(CURRENT_DATE, 'DD-MM-YYYY HH24:MI:SS'),'DD-MM-YYYY HH24:MI:SS')");
+                                    "AUFTRAGS_BESTAND.BEARB_DATE between TO_DATE('" +prevTime+ "', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE(TO_CHAR(CURRENT_DATE, 'DD-MM-YYYY HH24:MI:SS'),'DD-MM-YYYY HH24:MI:SS')");
+       // '10-09-2015 20:00:00'
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -150,7 +151,7 @@ public class ScrapOracleReader implements Runnable {
 
         long convertDate_timeStamp = 0;
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
+        DateFormat dateFormat = new SimpleDateFormat("dd-mm-yyyy hh:mm:ss");
         try {
             Date date = dateFormat.parse(firstDate);
             convertDate_timeStamp = date.getTime();
@@ -177,7 +178,7 @@ public class ScrapOracleReader implements Runnable {
         if(!firstPoll){
 
             java.sql.PreparedStatement statement = con.prepareStatement("SELECT TO_CHAR\n" +
-                    "    (SYSDATE, 'MM-DD-YYYY HH24:MI:SS') \"NOW\"\n" +
+                    "    (SYSDATE, 'DD-MM-YYYY HH24:MI:SS') \"NOW\"\n" +
                     "     FROM DUAL");
 
             ResultSet resultSet = statement.executeQuery();
@@ -190,7 +191,7 @@ public class ScrapOracleReader implements Runnable {
         }else {
 
             java.sql.PreparedStatement statement = con.prepareStatement("SELECT TO_CHAR\n" +
-                    "    (SYSDATE, 'MM-DD-YYYY HH24:MI:SS') \"NOW\"\n" +
+                    "    (SYSDATE, 'DD-MM-YYYY HH24:MI:SS') \"NOW\"\n" +
                     "     FROM DUAL");
 
             ResultSet resultSet = statement.executeQuery();
@@ -207,17 +208,20 @@ public class ScrapOracleReader implements Runnable {
 
     public String makeFirstDelay(String startDate, long substractValue) throws ParseException {
             long minToMilli = substractValue*60000;
+            long currentMilliTime = System.currentTimeMillis();
 
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
-        Date date = (Date)formatter.parse(startDate);
+    /*    SimpleDateFormat formatter = new SimpleDateFormat("DD-MM-YYYY HH:MM:SS");
+        Date date = formatter.parse(startDate);
         long mills = date.getTime();
+        System.out.println("started millis er "+mills);  */
 
-        long delayedMillis = mills - minToMilli;
+        long delayedMillis = currentMilliTime - minToMilli;
+        logger.debug("delayed millis are "+delayedMillis);
 
         Date prevDateTime = new Date(delayedMillis);
-        DateFormat df = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
+        DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         String generatedDate = df.format(prevDateTime);
-
+        logger.debug("started date is "+startDate+" prevTime er "+generatedDate);
         return generatedDate;
     }
 
