@@ -60,23 +60,23 @@ public class ScrapOracleReader implements Runnable {
         try {
             statement = con.prepareStatement(
                     "select ANLAGE_DATE as CREATED_DATE, ANLAGE_TIME as CREATED_TIME,\n" +
-                    "AUFTRAGS_BESTAND.BEARB_DATE, AUFTRAGS_BESTAND.BEARB_TIME,\n" +
-                    "AUFTRAGS_BESTAND.MASCH_NR as MACHINE_NO,\n" +
-                    "ADE_AUFTRAGMENGEN.AUFTRAG_NR as ORDER_OPERATION_NO,\n" +
-                    "IST_PRI as SCRAP_COUNT, GRUND_TEXT as SCRAP_REASON,\n" +
-                    "ARTIKEL as FINAL_ARTICLE\n" +
-                    "from AUFTRAGS_BESTAND\n" +
-                    "\n" +
-                    "join ADE_AUFTRAGMENGEN  on\n" +
-                    "ADE_AUFTRAGMENGEN.AUFTRAG_NR = AUFTRAGS_BESTAND.AUFTRAG_NR\n" +
-                    "join ADE_GRUND_TEXTE on\n" +
-                    "ADE_AUFTRAGMENGEN.GRUND_TEXT = ADE_GRUND_TEXTE.GRUNDTEXT_NR\n" +
-                    "join AUFTRAG_STATUS on\n" +
-                    "AUFTRAGS_BESTAND.AUFTRAG_NR = AUFTRAG_STATUS.AUFTRAG_NR\n" +
-                    "\n" +
-                    "where AUFTRAG_STATUS.A_STATUS = 'E'\n" +
-                    "and\n" +
-                    "AUFTRAGS_BESTAND.MASCH_NR IS NOT NULL");
+                            "AUFTRAGS_BESTAND.BEARB_DATE, AUFTRAGS_BESTAND.BEARB_TIME,\n" +
+                            "AUFTRAGS_BESTAND.MASCH_NR as MACHINE_NO,\n" +
+                            "ADE_AUFTRAGMENGEN.AUFTRAG_NR as ORDER_OPERATION_NO,\n" +
+                            "IST_PRI as SCRAP_COUNT, GRUND_TEXT as SCRAP_REASON,\n" +
+                            "ARTIKEL as FINAL_ARTICLE\n" +
+                            "from AUFTRAGS_BESTAND\n" +
+                            "\n" +
+                            "join ADE_AUFTRAGMENGEN  on\n" +
+                            "ADE_AUFTRAGMENGEN.AUFTRAG_NR = AUFTRAGS_BESTAND.AUFTRAG_NR\n" +
+                            "join ADE_GRUND_TEXTE on\n" +
+                            "ADE_AUFTRAGMENGEN.GRUND_TEXT = ADE_GRUND_TEXTE.GRUNDTEXT_NR\n" +
+                            "join AUFTRAG_STATUS on\n" +
+                            "AUFTRAGS_BESTAND.AUFTRAG_NR = AUFTRAG_STATUS.AUFTRAG_NR\n" +
+                            "\n" +
+                            "where AUFTRAG_STATUS.A_STATUS = 'E'\n" +
+                            "and\n" +
+                            "AUFTRAGS_BESTAND.MASCH_NR IS NOT NULL");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -123,9 +123,9 @@ public class ScrapOracleReader implements Runnable {
         simpleEvent.putToEventProperties("designation", createFullSimpleEvent(SCRAP_REASON, VariableType.STRING));
 
         if(SCRAP_REASON.equals("1011") || SCRAP_REASON.equals("2011")){
-            simpleEvent.putToEventProperties("goodPart", createFullSimpleEvent("TRUE", VariableType.BOOLEAN));
+            simpleEvent.putToEventProperties("goodPart", createFullSimpleEvent("true", VariableType.BOOLEAN));
         }else{
-            simpleEvent.putToEventProperties("goodPart", createFullSimpleEvent("FALSE", VariableType.BOOLEAN));
+            simpleEvent.putToEventProperties("goodPart", createFullSimpleEvent("false", VariableType.BOOLEAN));
         }
         simpleEvent.putToEventProperties("finalArticle", createFullSimpleEvent(FINAL_ARTICLE, VariableType.STRING));
 
