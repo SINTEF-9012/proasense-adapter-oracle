@@ -44,7 +44,6 @@ public class ScrapOracleReader implements Runnable {
     private long startTime;
     private Connection con;
     private String sensor_id;
-    long dateDelay;
     String currentTime;
     String prevTime;
     boolean firstPoll = false;
@@ -56,29 +55,18 @@ public class ScrapOracleReader implements Runnable {
         this.startTime = startTime;
         this.sensor_id = sensor_id;
         this.con = inputPort.con;
-        this.dateDelay = Long.parseLong(scrapConfig.getDateDelay());
         this.scrapConfig = scrapConfig;
-
     }
 
 
     @Override
     public void run() {
 
-        logger.debug("prev time er " + prevTime);
         java.sql.PreparedStatement statement = null;
-        int pollTime = scrapConfig.getPollInterval();
+        long pollTime = scrapConfig.getPollInterval();
+
 
         while (true) {
-
-                logger.debug("polltime is "+pollTime);
-
-            try {
-                Thread.sleep(pollTime);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
 
             try {
                 generateDates(con);
@@ -88,7 +76,8 @@ public class ScrapOracleReader implements Runnable {
                 e.printStackTrace();
             }
 
-
+            logger.debug("polltime is "+pollTime);
+                System.out.println(prevTime);
             try {
                 statement = con.prepareStatement(
                         "select AUFTRAGS_BESTAND.BEARB_DATE as MEASUREMENT_TIME,\n" +
@@ -137,6 +126,13 @@ public class ScrapOracleReader implements Runnable {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+
+            try {
+                Thread.sleep(pollTime);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
@@ -192,10 +188,10 @@ public class ScrapOracleReader implements Runnable {
         return complexValue;
     }
 
-    public String[] generateDates(Connection con) throws SQLException, ParseException {
+    public void generateDates(Connection con) throws SQLException, ParseException {
 
-        String dateValues[] = new String[2];
         if(!firstPoll){
+            prevTime = makeFirstDelay(scrapConfig.getDateDelay());
 
             java.sql.PreparedStatement statement = con.prepareStatement("SELECT TO_CHAR\n" +
                     "    (SYSDATE, 'DD-MM-YYYY HH24:MI:SS') \"NOW\"\n" +
@@ -203,10 +199,7 @@ public class ScrapOracleReader implements Runnable {
 
             ResultSet resultSet = statement.executeQuery();
             resultSet.next();
-
             currentTime = resultSet.getString(1);
-            prevTime = makeFirstDelay(currentTime, dateDelay);
-
             firstPoll = true;
         }else {
 
@@ -219,30 +212,15 @@ public class ScrapOracleReader implements Runnable {
             prevTime = currentTime;
             currentTime = resultSet.getString(1);
         }
-
-        dateValues[0] = prevTime;
-        dateValues[1] = currentTime;
-
-        return dateValues;
     }
 
-    public String makeFirstDelay(String startDate, long substractValue) throws ParseException {
-            long minToMilli = substractValue*60000;
-            long currentMilliTime = System.currentTimeMillis();
+    public String makeFirstDelay(long delayAddedTime) throws ParseException {
 
-    /*    SimpleDateFormat formatter = new SimpleDateFormat("DD-MM-YYYY HH:MM:SS");
-        Date date = formatter.parse(startDate);
-        long mills = date.getTime();
-        System.out.println("started millis er "+mills);  */
-
-        long delayedMillis = currentMilliTime - minToMilli;
-        logger.debug("delayed millis are "+delayedMillis);
-
-        Date prevDateTime = new Date(delayedMillis);
+        Date prevDateTime = new Date(delayAddedTime);
         DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         String generatedDate = df.format(prevDateTime);
-        logger.debug("started date is "+startDate+" prevTime er "+generatedDate);
+
+        System.out.println("generated delay er "+generatedDate);
         return generatedDate;
     }
-
 }

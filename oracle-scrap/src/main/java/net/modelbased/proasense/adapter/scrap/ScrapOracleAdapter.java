@@ -38,14 +38,16 @@ public class ScrapOracleAdapter extends AbstractOracleAdapter {
 
     public ScrapOracleAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
         // Get specific adapter properties
-        int I_CONFIG_TIMEDELAY = new Integer(adapterProperties.getProperty("proasense.adapter.scrap.config.timedelay")).intValue();
-        String delayOnDate = adapterProperties.getProperty("proasense.adapter.scrap.config.dateDelayInMin");
+        long I_CONFIG_TIMEDELAY = new Integer(adapterProperties.getProperty("proasense.adapter.scrap.config.firstDelay")).longValue();
+        long poll = new Long(adapterProperties.getProperty("proasense.adapter.oracle.poll.interval")).longValue();
         // Configure scrap adapter
-        ScrapConfig scrapConfig = new ScrapConfig(this.sensor_id, I_CONFIG_TIMEDELAY, delayOnDate);
 
         // Set initial start time (adjusted with time delay)
-        int subtractMinutes = 0 - I_CONFIG_TIMEDELAY;
+        long subtractMinutes = I_CONFIG_TIMEDELAY;
         long startTime = System.currentTimeMillis() - (subtractMinutes*60*1000);
+        long pollInMin = poll*60*1000;
+
+        ScrapConfig scrapConfig = new ScrapConfig(this.sensor_id, pollInMin, startTime);
 
         // Blocking queue for multi-threaded application
         int NO_BLOCKINGQUEUE_SIZE = 1000000;

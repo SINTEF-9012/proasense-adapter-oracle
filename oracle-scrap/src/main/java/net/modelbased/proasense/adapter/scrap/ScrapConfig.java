@@ -20,24 +20,23 @@ package net.modelbased.proasense.adapter.scrap;
 
 public class ScrapConfig {
     private String sensorId;
-    private int pollInterval;
-    private String dateDelay;
+    private long pollInterval;
+    private long startTime;
 
 
-    public ScrapConfig(String sensorId, int pollInterval, String dateDelay) {
+    public ScrapConfig(String sensorId, long pollInterval, long startTime) {
         this.sensorId = sensorId;
         this.pollInterval = pollInterval;
-        this.dateDelay = dateDelay;
+        this.startTime = startTime;
     }
 
-    public String getDateDelay(){return this.dateDelay;}
+    public long getDateDelay(){return this.startTime;}
 
     public String getSensorId() {
         return this.sensorId;
     }
 
-
-    public int getPollInterval() {
+    public long getPollInterval() {
         return this.pollInterval;
     }
 
