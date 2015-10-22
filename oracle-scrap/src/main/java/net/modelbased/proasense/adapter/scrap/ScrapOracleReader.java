@@ -48,6 +48,7 @@ public class ScrapOracleReader implements Runnable {
     String currentTime;
     String prevTime;
     boolean firstPoll = false;
+    ScrapConfig scrapConfig;
 
 
     public ScrapOracleReader(BlockingQueue<SimpleEvent> queue, ScrapConfig scrapConfig, long startTime, OracleConsumerInput inputPort, String sensor_id) throws SQLException, ClassNotFoundException, InterruptedException {
@@ -56,71 +57,88 @@ public class ScrapOracleReader implements Runnable {
         this.sensor_id = sensor_id;
         this.con = inputPort.con;
         this.dateDelay = Long.parseLong(scrapConfig.getDateDelay());
+        this.scrapConfig = scrapConfig;
 
-        try {
-            generateDates(con);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
     }
 
 
     @Override
     public void run() {
 
-        logger.debug("prev time er "+prevTime);
+        logger.debug("prev time er " + prevTime);
         java.sql.PreparedStatement statement = null;
+        int pollTime = scrapConfig.getPollInterval();
 
-        try {
-            statement = con.prepareStatement(
-                            "select AUFTRAGS_BESTAND.BEARB_DATE as MEASUREMENT_TIME,\n" +
-                                    "AUFTRAGS_BESTAND.MASCH_NR as MACHINE_NO,\n" +
-                                    "IST_PRI as SCRAP_COUNT, GRUND_TEXT as SCRAP_DESIGNATIONREASON,\n" +
-                                    "ARTIKEL as FINAL_ARTICLE\n" +
-                                    "from AUFTRAGS_BESTAND\n" +
-                                    "\n" +
-                                    "join ADE_AUFTRAGMENGEN  on\n" +
-                                    "ADE_AUFTRAGMENGEN.AUFTRAG_NR = AUFTRAGS_BESTAND.AUFTRAG_NR\n" +
-                                    "join ADE_GRUND_TEXTE on\n" +
-                                    "ADE_AUFTRAGMENGEN.GRUND_TEXT = ADE_GRUND_TEXTE.GRUNDTEXT_NR\n" +
-                                    "join AUFTRAG_STATUS on\n" +
-                                    "AUFTRAGS_BESTAND.AUFTRAG_NR = AUFTRAG_STATUS.AUFTRAG_NR\n" +
-                                    "\n" +
-                                    "where AUFTRAG_STATUS.A_STATUS = 'E'\n" +
-                                    "and\n" +
-                                    "AUFTRAGS_BESTAND.MASCH_NR IS NOT NULL\n" +
-                                    "and\n" +
-                                    "AUFTRAGS_BESTAND.BEARB_DATE between TO_DATE('" +prevTime+ "', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE(TO_CHAR(CURRENT_DATE, 'DD-MM-YYYY HH24:MI:SS'),'DD-MM-YYYY HH24:MI:SS')");
-       // '10-09-2015 20:00:00'
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        while (true) {
 
-        try {
-            // 1. Query database every POLL_TIME and get results
-            ResultSet result = statement.executeQuery();
-            SimpleEvent event = null;
-
-            while (result.next()) {
-                // 2. Convert to simple events
-                logger.debug(result.toString());
-                event = convertToSimpleEvent(result);
-
-            // 3. Put simple events on queue
+                logger.debug("polltime is "+pollTime);
 
             try {
-                queue.put(event);
+                Thread.sleep(pollTime);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-                logger.debug("Finished with one simpleEvent "+ event.toString());
+
+
+            try {
+                generateDates(con);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
+                e.printStackTrace();
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+
+            try {
+                statement = con.prepareStatement(
+                        "select AUFTRAGS_BESTAND.BEARB_DATE as MEASUREMENT_TIME,\n" +
+                                "AUFTRAGS_BESTAND.MASCH_NR as MACHINE_NO,\n" +
+                                "IST_PRI as SCRAP_COUNT, GRUND_TEXT as SCRAP_DESIGNATIONREASON,\n" +
+                                "ARTIKEL as FINAL_ARTICLE\n" +
+                                "from AUFTRAGS_BESTAND\n" +
+                                "\n" +
+                                "join ADE_AUFTRAGMENGEN  on\n" +
+                                "ADE_AUFTRAGMENGEN.AUFTRAG_NR = AUFTRAGS_BESTAND.AUFTRAG_NR\n" +
+                                "join ADE_GRUND_TEXTE on\n" +
+                                "ADE_AUFTRAGMENGEN.GRUND_TEXT = ADE_GRUND_TEXTE.GRUNDTEXT_NR\n" +
+                                "join AUFTRAG_STATUS on\n" +
+                                "AUFTRAGS_BESTAND.AUFTRAG_NR = AUFTRAG_STATUS.AUFTRAG_NR\n" +
+                                "\n" +
+                                "where AUFTRAG_STATUS.A_STATUS = 'E'\n" +
+                                "and\n" +
+                                "AUFTRAGS_BESTAND.MASCH_NR IS NOT NULL\n" +
+                                "and\n" +
+                                "AUFTRAGS_BESTAND.BEARB_DATE between TO_DATE('" + prevTime + "', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE(TO_CHAR(CURRENT_DATE, 'DD-MM-YYYY HH24:MI:SS'),'DD-MM-YYYY HH24:MI:SS')");
+                // '10-09-2015 20:00:00'
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                // 1. Query database every POLL_TIME and get results
+                ResultSet result = statement.executeQuery();
+                SimpleEvent event = null;
+
+                while (result.next()) {
+                    // 2. Convert to simple events
+                    logger.debug(result.toString());
+                    event = convertToSimpleEvent(result);
+
+                    // 3. Put simple events on queue
+
+                    try {
+                        queue.put(event);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    logger.debug("Finished with one simpleEvent " + event.toString());
+                }
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
-
 
     private SimpleEvent convertToSimpleEvent(ResultSet values) throws SQLException {
         //give value to every item from each row from database.
@@ -151,7 +169,7 @@ public class ScrapOracleReader implements Runnable {
 
         long convertDate_timeStamp = 0;
 
-        DateFormat dateFormat = new SimpleDateFormat("dd-mm-yyyy hh:mm:ss");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         try {
             Date date = dateFormat.parse(firstDate);
             convertDate_timeStamp = date.getTime();
@@ -159,6 +177,8 @@ public class ScrapOracleReader implements Runnable {
             e.printStackTrace();
         }
 
+        logger.debug("converted Date is "+convertDate_timeStamp);
+        logger.debug("first Date is "+firstDate);
         simpleEvent.setSensorId(sensorId);
         simpleEvent.setTimestamp(convertDate_timeStamp);
         return simpleEvent;
