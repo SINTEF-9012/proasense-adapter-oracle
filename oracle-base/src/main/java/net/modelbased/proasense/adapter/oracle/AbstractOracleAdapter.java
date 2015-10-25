@@ -43,7 +43,7 @@ public abstract class AbstractOracleAdapter extends AbstractBaseAdapter {
     String password = adapterProperties.getProperty("proasense.adapter.oracle.password");
     String rawDelayValue = adapterProperties.getProperty("proasense.adapter.oracle.poll.interval");
     String sid = adapterProperties.getProperty("proasense.adapter.oracle.sid");
-    long delay = Long.parseLong(rawDelayValue);
+    public long pollIntervall = Long.parseLong(rawDelayValue);
     public String sensor_id = adapterProperties.getProperty("proasense.adapter.base.sensorid");
 
     public AbstractOracleAdapter() throws SQLException, ClassNotFoundException, InterruptedException {

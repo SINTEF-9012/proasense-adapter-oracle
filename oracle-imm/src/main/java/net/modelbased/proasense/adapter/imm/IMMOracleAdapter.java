@@ -47,7 +47,7 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
     // gir alle ord vi skal sammenligne med, som cycleTime og hvordan mappingen er, eks cycleTime:DOUBLE
     String object_id_tag = adapterProperties.getProperty("proasense.adapter.oracle.imm.object_id.tags");
     String object_id_mapping = adapterProperties.getProperty("proasense.adapter.oracle.imm.object_id.mapping");
-    String globalTableName = adapterProperties.getProperty("proasense.adapter.oracle.DBTableName1");
+    String globalTableName = adapterProperties.getProperty("proasense.adapter.imm.DBTableName1");
 
 
     String id_tags[] = reference_id_tags.split(",");
@@ -85,27 +85,31 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
         int rowCount = 0;
         int prevCount = 0;
 
+        java.sql.PreparedStatement statement = con.prepareStatement("select * from(select object_name, created " +
+                "from SYS.USER_OBJECTS where object_name like "+newTableName+" order by created desc)\n" +
+                "  where rownum = 1");
+
+        ResultSet resultSet = null;
+
         while(true) {
 
-            java.sql.PreparedStatement statement = con.prepareStatement("select * from(select object_name, created " +
-                    "from SYS.USER_OBJECTS where object_name like "+newTableName+" order by created desc)\n" +
-                    "  where rownum = 1");
-
-            ResultSet resultSet = statement.executeQuery();
+            resultSet = statement.executeQuery();
 
             if(resultSet.next()){
                 if(!(resultSet.getString(1).equals(prevTableName))) prevCount = 0;
                 rowCount =  convertToSimpleEvent(prevCount,con, objectToValueMap, idToMap ,
                         resultSet.getString(1)+","+resultSet.getString(2), sensor_id);
+                System.out.println("etter convertToSimpleEvent:");
+                prevCount = rowCount;
+                prevTableName = resultSet.getString(1);
             }
 
             try {
-                Thread.sleep(5000);
+                Thread.sleep(pollIntervall);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            prevCount = rowCount;
-            prevTableName = resultSet.getString(1);
+
             logger.debug("Back in outer loop.");
         }
     }
@@ -142,21 +146,19 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
     protected int convertToSimpleEvent(int prevCount, Connection con, HashMap map,HashMap idToMap,
                                        String nameAndDate, String sensorId) throws SQLException, InterruptedException {
         this.sensorId = sensorId;
-        this.delay = delay;
         LocalDate localDate = new LocalDate();
         String[] tableNameAndDate = nameAndDate.split(",");
         String creationDate[] = tableNameAndDate[1].split(" ");
         String tableName = tableNameAndDate[0];
         int newRowCount = 0;
+
         ResultSet result;
         java.sql.PreparedStatement statement;
+        statement = con.prepareStatement("select count(*) from " + tableName);
 
         while(true){
             Thread.sleep(delay);
-            statement = con.prepareStatement("select count(*) from " + tableName);
             result = statement.executeQuery();
-
-            Thread.sleep(3000);
 
             logger.debug("still in inner loop");
             if(result.next()){
