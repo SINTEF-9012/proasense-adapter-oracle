@@ -35,8 +35,6 @@ import java.util.*;
 
 public class IMMOracleAdapter extends AbstractOracleAdapter {
 
-    long delay;
-    String sensorId;
 
     public final static Logger logger = Logger.getLogger(AbstractOracleAdapter.class);
     HashMap objectToValueMap = null;
@@ -91,17 +89,16 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
 
         while(true) {
 
-            java.sql.PreparedStatement statement = con.prepareStatement("select * from(select object_name, created " +
-                    "from SYS.USER_OBJECTS where object_name like "+newTableName+" order by created desc)\n" +
-                    "  where rownum = 1");
+            java.sql.PreparedStatement statement = con.prepareStatement("select * from(select object_name, created from SYS.USER_OBJECTS where object_name like "+newTableName+"\n" +
+                    "order by created desc) where created like SYSDATE and rownum = 1");
 
+                logger.debug("waiting for valid table...");
             resultSet = statement.executeQuery();
 
             if(resultSet.next()){
                 if(!(resultSet.getString(1).equals(prevTableName))) prevCount = 0;
                 rowCount =  convertToSimpleEvent(prevCount,con, objectToValueMap, idToMap ,
                         resultSet.getString(1)+","+resultSet.getString(2), sensor_id);
-                System.out.println("etter convertToSimpleEvent:");
             }else {
 
                 try {
@@ -109,6 +106,7 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                continue;
             }
             prevCount = rowCount;
             prevTableName = resultSet.getString(1);
@@ -147,7 +145,7 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
 
     protected int convertToSimpleEvent(int prevCount, Connection con, HashMap map,HashMap idToMap,
                                        String nameAndDate, String sensorId) throws SQLException, InterruptedException {
-        this.sensorId = sensorId;
+
         LocalDate localDate = new LocalDate();
         String[] tableNameAndDate = nameAndDate.split(",");
         String creationDate[] = tableNameAndDate[1].split(" ");
@@ -159,7 +157,8 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
 
 
         while(true){
-            Thread.sleep(delay);
+            Thread.sleep(pollIntervall);
+
             statement = con.prepareStatement("select count(*) from " + tableName);
             result = statement.executeQuery();
 
@@ -242,7 +241,7 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
 
         SimpleEvent event = new SimpleEvent();
         event.setTimestamp(date);
-        event.setSensorId(sensorId);
+        event.setSensorId(sensor_id);
 
         String objectId = "";
 
