@@ -78,6 +78,11 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
     }
 
     public void  checkForLatestTable(Connection con, String globalTableName) throws SQLException, InterruptedException {
+
+        if(globalTableName.length() < 5){
+            System.out.println("Name of tha table should be of more than 4 characters of length!");
+            return;
+        }
         String newTableName = "'"+trimTableName(globalTableName)+"%'";
         String prevTableName = "";
         int rowCount = 0;
@@ -136,7 +141,7 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
         super();
 
         objectToValueMap = createNameMap(objectTag, objectValue);
-        idToMap = createIdToValueMap(reference_id_mapping, id_tags); // alle id fikk en mapping med id-nr og string type.
+        idToMap = createIdToValueMap(reference_id_mapping, id_tags);
         Connection con = inputPort.con;
 
         checkForLatestTable(con, globalTableName);
