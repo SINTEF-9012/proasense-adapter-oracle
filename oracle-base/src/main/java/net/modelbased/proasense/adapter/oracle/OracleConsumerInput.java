@@ -37,7 +37,6 @@ public class OracleConsumerInput {
         //navnet på getConnection er hentet fra addressen som er i minOracle databasen sin properties.
        // this.con = DriverManager.getConnection("jdbc:oracle:thin:@//localhost:1521", "SYSTEM", "1234");
         OracleDataSource ods = new OracleDataSource();
-        System.out.println("url er "+url);
         ods.setURL(url);
         ods.setUser(username);
         ods.setPassword(password);

@@ -83,7 +83,8 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
             System.out.println("Name of tha table should be of more than 4 characters of length!");
             return;
         }
-        String newTableName = "'"+trimTableName(globalTableName)+"%'";
+
+        String newTableName = "'"+trimTableName(globalTableName.toUpperCase())+"%'";
         String prevTableName = "";
         int rowCount = 0;
         int prevCount = 0;
@@ -115,7 +116,7 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
             }
             prevCount = rowCount;
             prevTableName = resultSet.getString(1);
-            logger.debug("Back in outer loop.");
+            logger.debug("Waiting in outer loop for new table.");
         }
     }
 
@@ -167,7 +168,7 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
             statement = con.prepareStatement("select count(*) from " + tableName);
             result = statement.executeQuery();
 
-            logger.debug("still in inner loop");
+            logger.debug("Waiting in inner loop for new rows in the database.");
             if(result.next()){
                 newRowCount = Integer.parseInt(result.getString(1));
             }
