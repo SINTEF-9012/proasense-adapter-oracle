@@ -44,7 +44,7 @@ public class ScrapOracleAdapter extends AbstractOracleAdapter {
 
         // Set initial start time (adjusted with time delay)
         long subtractMinutes = I_CONFIG_TIMEDELAY;
-        long startTime = System.currentTimeMillis() - subtractMinutes;// (subtractMinutes*60*1000);
+        long startTime = System.currentTimeMillis() - (subtractMinutes*60*1000);
         long pollInMin = poll; //*60*1000;
 
         ScrapConfig scrapConfig = new ScrapConfig(this.sensor_id, pollInMin, startTime);

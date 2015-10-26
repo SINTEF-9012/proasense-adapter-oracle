@@ -85,13 +85,15 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
         int rowCount = 0;
         int prevCount = 0;
 
-        java.sql.PreparedStatement statement = con.prepareStatement("select * from(select object_name, created " +
-                "from SYS.USER_OBJECTS where object_name like "+newTableName+" order by created desc)\n" +
-                "  where rownum = 1");
+
 
         ResultSet resultSet = null;
 
         while(true) {
+
+            java.sql.PreparedStatement statement = con.prepareStatement("select * from(select object_name, created " +
+                    "from SYS.USER_OBJECTS where object_name like "+newTableName+" order by created desc)\n" +
+                    "  where rownum = 1");
 
             resultSet = statement.executeQuery();
 
@@ -100,16 +102,16 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
                 rowCount =  convertToSimpleEvent(prevCount,con, objectToValueMap, idToMap ,
                         resultSet.getString(1)+","+resultSet.getString(2), sensor_id);
                 System.out.println("etter convertToSimpleEvent:");
-                prevCount = rowCount;
-                prevTableName = resultSet.getString(1);
-            }
+            }else {
 
-            try {
-                Thread.sleep(pollIntervall);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                try {
+                    Thread.sleep(pollIntervall);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-
+            prevCount = rowCount;
+            prevTableName = resultSet.getString(1);
             logger.debug("Back in outer loop.");
         }
     }
@@ -154,10 +156,11 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
 
         ResultSet result;
         java.sql.PreparedStatement statement;
-        statement = con.prepareStatement("select count(*) from " + tableName);
+
 
         while(true){
             Thread.sleep(delay);
+            statement = con.prepareStatement("select count(*) from " + tableName);
             result = statement.executeQuery();
 
             logger.debug("still in inner loop");
@@ -204,6 +207,7 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
             String id_mapping = (String)map.get(result.getString(5));
             String[] split_id_mapping = splitValues(id_mapping);
             String refId = result.getString(4);
+
                 HashMap tempMap = idToMap.get(refId);
 
                 if(split_id_mapping[1].equals("STRING")){
