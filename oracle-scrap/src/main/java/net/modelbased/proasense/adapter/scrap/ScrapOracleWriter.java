@@ -52,7 +52,6 @@ public class ScrapOracleWriter implements Runnable {
             try {
                 // Read simple event from queue
                 SimpleEvent event = queue.take();
-
                 // Check timestamp
                 long eventTimestamp = event.getTimestamp();
                 long timeDiff = eventTimestamp - this.lastTimestamp;

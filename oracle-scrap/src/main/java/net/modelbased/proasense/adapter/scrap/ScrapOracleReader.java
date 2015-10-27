@@ -77,7 +77,8 @@ public class ScrapOracleReader implements Runnable {
             }
 
             logger.debug("polltime is "+pollTime);
-                System.out.println(prevTime);
+            logger.debug(prevTime);
+
             try {
                 statement = con.prepareStatement(
                         "select AUFTRAGS_BESTAND.BEARB_DATE as MEASUREMENT_TIME,\n" +
@@ -97,7 +98,7 @@ public class ScrapOracleReader implements Runnable {
                                 "and\n" +
                                 "AUFTRAGS_BESTAND.MASCH_NR IS NOT NULL\n" +
                                 "and\n" +
-                                "AUFTRAGS_BESTAND.BEARB_DATE between TO_DATE('" + prevTime + "', 'DD-MM-YYYY HH24:MI:SS') and TO_DATE(TO_CHAR(CURRENT_DATE, 'DD-MM-YYYY HH24:MI:SS'),'DD-MM-YYYY HH24:MI:SS')");
+                                "AUFTRAGS_BESTAND.BEARB_DATE between TO_DATE("+prevTime+", 'DD-MM-YYYY HH24:MI:SS') and TO_DATE(TO_CHAR(CURRENT_DATE, 'DD-MM-YYYY HH24:MI:SS'),'DD-MM-YYYY HH24:MI:SS')");
                 // '10-09-2015 20:00:00'
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -108,7 +109,11 @@ public class ScrapOracleReader implements Runnable {
                 ResultSet result = statement.executeQuery();
                 SimpleEvent event = null;
 
+                logger.debug("før result.next "+statement.getParameterMetaData());
+
                 while (result.next()) {
+                    logger.debug("result is "+result);
+
                     // 2. Convert to simple events
                     logger.debug(result.toString());
                     event = convertToSimpleEvent(result);
@@ -116,6 +121,7 @@ public class ScrapOracleReader implements Runnable {
                     // 3. Put simple events on queue
 
                     try {
+                        logger.debug("sender event "+event);
                         queue.put(event);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -191,7 +197,7 @@ public class ScrapOracleReader implements Runnable {
     public void generateDates(Connection con) throws SQLException, ParseException {
 
         if(!firstPoll){
-            prevTime = makeFirstDelay(scrapConfig.getDateDelay());
+            prevTime = "'"+makeFirstDelay(scrapConfig.getDateDelay())+"'";
 
             java.sql.PreparedStatement statement = con.prepareStatement("SELECT TO_CHAR\n" +
                     "    (SYSDATE, 'DD-MM-YYYY HH24:MI:SS') \"NOW\"\n" +
