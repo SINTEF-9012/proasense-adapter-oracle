@@ -109,10 +109,8 @@ public class ScrapOracleReader implements Runnable {
                 ResultSet result = statement.executeQuery();
                 SimpleEvent event = null;
 
-                logger.debug("før result.next "+statement.getParameterMetaData());
 
                 while (result.next()) {
-                    logger.debug("result is "+result);
 
                     // 2. Convert to simple events
                     logger.debug(result.toString());
@@ -121,7 +119,7 @@ public class ScrapOracleReader implements Runnable {
                     // 3. Put simple events on queue
 
                     try {
-                        logger.debug("sender event "+event);
+                        logger.debug("sending event "+event);
                         queue.put(event);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -226,7 +224,7 @@ public class ScrapOracleReader implements Runnable {
         DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         String generatedDate = df.format(prevDateTime);
 
-        System.out.println("generated delay er "+generatedDate);
+        System.out.println("generated delay is "+generatedDate);
         return generatedDate;
     }
 }

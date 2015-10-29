@@ -80,7 +80,7 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
     public void  checkForLatestTable(Connection con, String globalTableName) throws SQLException, InterruptedException {
 
         if(globalTableName.length() < 5){
-            System.out.println("Name of tha table should be of more than 4 characters of length!");
+            System.out.println("Name of the table should be of more than 4 characters of length!");
             return;
         }
 
@@ -214,11 +214,10 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
             String refId = result.getString(4);
 
                 HashMap tempMap = idToMap.get(refId);
-
                 if(split_id_mapping[1].equals("STRING")){
                     if(!tempMap.containsKey(split_id_mapping[0]))
                         tempMap.put(split_id_mapping[0] + "," + split_id_mapping[1], refId);
-                    if(tempMap.size() == 7){
+                    if(tempMap.size() == (objectTag.length+1)){
                         outputToBroker(date, tempMap);
                         tempMap.clear();
                         tempMap.put("machineId,STRING", refId);
@@ -227,7 +226,7 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
                     if(!tempMap.containsKey(split_id_mapping[0])){
                         tempMap.put(split_id_mapping[0]+","+split_id_mapping[1], result.getString(8));
                     }
-                    if(tempMap.size() == 7){
+                    if(tempMap.size() == objectTag.length+1){
                         outputToBroker(date, tempMap);
                         tempMap.clear();
                         tempMap.put("machineId,STRING",refId);
