@@ -73,7 +73,14 @@ ProaSense Oracle adapter for retrieving Moulding Machine (MM) parameters and Scr
   defined in the property file. 
 
 # Test data
-  There is test-data for all three modules located in test folder of the modules.
-  A program has been developed to generate sample schema with necessary values.
-  Program is located in test.net.modelbased.proasense.adapter.imm, this program will generate 101 row for the IMM schema       
-  located in oracle database.
+  There is test-data for all adapters, located in test folder of the modules.
+* Oracle-imm tests:
+  A script has been developed to generate sample schema with necessary values.
+  Script is located in test.net.modelbased.proasense.adapter.imm, this program will generate 101 row for the 
+  TNT_0000002015091021 schema. Thera are also some sql scripts for creating schema, insert values and querie the schema,
+  These scripts are located in oracle-imm.src.test.scripts folder and are ready to be used in a sql console.
+* Oracle-scrap tests:
+  Similarly as the previouse adapter, there are some scripts ready to use in the oracle-scrap.src.test folder.
+  these can be copy and paste directly into the sql console and after populating the database, adapter can be used to 
+  test the data as described in "Run the program" section above.
+
