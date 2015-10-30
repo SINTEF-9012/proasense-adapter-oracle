@@ -59,7 +59,7 @@ ProaSense Oracle adapter for retrieving Moulding Machine (MM) parameters and Scr
 # End-users guide
   Steps above are needed to accomplish to start any of the two adapters, this section will keep focus on how to use these      adapters, namely oracle-imm and orecle-scrap. In the end will tests for both of the adapters be highligted.
 * Oracle-imm: This adapter will take the latest table created on that day, if there is no table on that day that have the      given prefix, the loop will continue with certain time-delay. If the table exists then it will be accessed and it's row      will be processed as well as new row that are entered into the table.
-* Oracle-scrap: This adapter is meant to have a pollinterval and a firstDelay that will poll rows from database from a         specific time from the past, like 60 min or any other value. Both of these properties are to be defined in the property      file. When running the adapter, row from example 60 min back in time will start to be processed with a certain interval defined in . 
+* Oracle-scrap: This adapter is meant to have a pollinterval and a firstDelay that will poll rows from database from a         specific time from the past, like 60 min or any other value. Both of these properties are to be defined in the property      file. When running the adapter, row from example 60 min back in time will start to be processed with a certain interval      defined in the property file. 
 
 # Test data
   There is test-data for all three modules located in test folder of the modules.
