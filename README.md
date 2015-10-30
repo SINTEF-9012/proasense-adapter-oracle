@@ -22,7 +22,7 @@ ProaSense Oracle adapter for retrieving Moulding Machine (MM) parameters and Scr
   cd proasense-adapter-oracle
   mvn clean install 
 
-# User guide
+# Technical user guide
   * Required information for making connection to database:
   1.  Username.
   2.  Password.
@@ -30,7 +30,8 @@ ProaSense Oracle adapter for retrieving Moulding Machine (MM) parameters and Scr
   4.  sid: is a site identifier.
   5.  Name of the schema to read rows from, at least 5 characters long.
   
-  * Other parameters in property file:
+# Other parameters in the property files of oracle-imm and oracle-scrap:
+* IMM adapter:
   1.  poll interval: has value in milliseconds, can be adjusted to suit users needs.
   2.  reference_id.tags: this parameter takes id-number of all maschines user want to monitor, multiple id-numbers must be 
       comma-separated.
@@ -38,17 +39,27 @@ ProaSense Oracle adapter for retrieving Moulding Machine (MM) parameters and Scr
   4.  object_id.mapping: Values for this parameter maps to tags of the previouse parameter, these values must be presented         in the same sequence as the object_id.tags to avoid missmathch. Second property required is the type of value this is, 
       like STRING, DOUBLE, BOOLEAN or BLOB. Syntaxt for this should look like this: 
       cycleTime:DOUBLE, multiple values must be separeted by comma.
+  5.  proasense.adapter.oracle.imm.reference_id.mapping: this defines a default string; machineId.
+* Scrap adapter:
+  5.  proasense.adapter.scrap.config.firstDelay = 60: polls row from database 60 minutes back in time.
+  6.  proasense.adapter.oracle.poll.interval = 3600000: this defines poll-interval to 3600000 ms.
   
-# 
-
-* There are are three folders for this adapter, only two of them are meant to be executed. The folders are:
+# Folder structure
+* There are three folders for this adapter, only two of them are meant to be executed. These folders are:
   1.  oracle-imm
-  2.  oracle.scrap
+  2.  oracle-scrap
 
 * Run the program
   start Oracle server.
-  cd to folder you want to execute, eks oracle-imm
-  type "mvn exec:java" in command prompt.
+  cd to folder you want to execute, in this case proasense-adapter-oracle.
+  type "mvn clean install".
+  cd to the one of the folders mentioned above.
+  type "mvn exec:java" in the command prompt.
+
+# End-users guide
+  Steps above are needed to accomplish to start any of the two adapters, this section will keep focus on how to use these      adapters, namely oracle-imm and orecle-scrap. In the end will tests for both of the adapters be highligted.
+* Oracle-imm: This adapter will take the latest table created on that day, if there is no table on that day that have the      given prefix, the loop will continue with certain time-delay. If the table exists then it will be accessed and it's row      will be processed as well as new row that are entered into the table.
+* Oracle-scrap: This adapter is meant to have a pollinterval and a firstDelay that will poll rows from database from a         specific time from the past, like 60 min or any other value. Both of these properties are to be defined in the property      file. When running the adapter, row from example 60 min back in time will start to be processed with a certain interval      defined in the property file. 
 
 # Test data
   There is test-data for all three modules located in test folder of the modules.
