@@ -36,7 +36,7 @@ ProaSense Oracle adapter for retrieving Moulding Machine (MM) parameters and Scr
       comma-separated.
   3.  object_id.tags: these values represent column OBJECT_ID in the schema. The values user want to extract must be listed        here in the form they are present in the database and separated with comma..
   4.  object_id.mapping: Values for this parameter maps to tags of the previouse parameter, these values must be presented         in the same sequence as the object_id.tags to avoid missmathch. Second property required is the type of value this is, 
-      like STRING, DOUBLE, BOOLEAN OR BLOB. Syntaxt for this should look like this: 
+      like STRING, DOUBLE, BOOLEAN or BLOB. Syntaxt for this should look like this: 
       cycleTime:DOUBLE, multiple values must be separeted by comma.
   
 # 
