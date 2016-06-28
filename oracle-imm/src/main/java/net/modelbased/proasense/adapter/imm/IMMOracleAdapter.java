@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2014-2015 SINTEF
+ * Copyright (C) 2014-2016 SINTEF
  *
  *     Brian Elvesæter <brian.elvesater@sintef.no>
  *     Shahzad Karamat <shazad.karamat@gmail.com>
@@ -18,44 +18,41 @@
  */
 package net.modelbased.proasense.adapter.imm;
 
+import net.modelbased.proasense.adapter.oracle.AbstractOracleAdapter;
+
 import eu.proasense.internal.ComplexValue;
 import eu.proasense.internal.SimpleEvent;
 import eu.proasense.internal.VariableType;
-import net.modelbased.proasense.adapter.oracle.AbstractOracleAdapter;
-import net.modelbased.proasense.adapter.oracle.OracleConsumerInput;
+
 import org.apache.log4j.Logger;
 import org.joda.time.LocalDate;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 
 public class IMMOracleAdapter extends AbstractOracleAdapter {
-
-
     public final static Logger logger = Logger.getLogger(AbstractOracleAdapter.class);
+
     HashMap objectToValueMap = null;
     HashMap<String, HashMap> idToMap = null;
 
     String reference_id_mapping = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.mapping");
     String reference_id_tags = adapterProperties.getProperty("proasense.adapter.oracle.imm.reference_id.tags");
-    // gir alle ord vi skal sammenligne med, som cycleTime og hvordan mappingen er, eks cycleTime:DOUBLE
     String object_id_tag = adapterProperties.getProperty("proasense.adapter.oracle.imm.object_id.tags");
     String object_id_mapping = adapterProperties.getProperty("proasense.adapter.oracle.imm.object_id.mapping");
     String globalTableName = adapterProperties.getProperty("proasense.adapter.imm.DBTableName1");
-
 
     String id_tags[] = reference_id_tags.split(",");
     String objectTag[] = object_id_tag.split(",");
     String objectValue[] = object_id_mapping.split(",");
 
 
-
-
-    HashMap createNameMap(String[] objectId, String[] nameAndValues){
+    private HashMap createNameMap(String[] objectId, String[] nameAndValues){
         HashMap map = new HashMap();
 
         for(int i = 0; i < objectId.length; i++){
@@ -77,6 +74,7 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
         return timestamp;
     }
 
+
     public void  checkForLatestTable(Connection con, String globalTableName) throws SQLException, InterruptedException {
 
         if(globalTableName.length() < 5){
@@ -88,8 +86,6 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
         String prevTableName = "";
         int rowCount = 0;
         int prevCount = 0;
-
-
 
         ResultSet resultSet = null;
 
@@ -138,6 +134,7 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
         return  machines;
     }
 
+
     public IMMOracleAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
         super();
 
@@ -148,6 +145,7 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
         checkForLatestTable(con, globalTableName);
 
     }
+
 
     protected int convertToSimpleEvent(int prevCount, Connection con, HashMap map,HashMap idToMap,
                                        String nameAndDate, String sensorId) throws SQLException, InterruptedException {
@@ -193,6 +191,7 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
         }
     }
 
+
     public void filterData(Connection con, String tableName, HashMap map, HashMap<String, HashMap> idToMap,
     int prevCount, int newCount) throws InterruptedException, SQLException {
 
@@ -237,10 +236,12 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
         statement.close();
     }
 
+
     public String[] splitValues(String valuesToSplit){
         String[] splitTwoValues = valuesToSplit.split(":");
         return splitTwoValues;
     }
+
 
     public void outputToBroker(long date, HashMap<String, HashMap> mapValueAndType){
 
@@ -270,7 +271,15 @@ public class IMMOracleAdapter extends AbstractOracleAdapter {
         outputPort.publishSimpleEvent(event);
     }
 
+
+    // Start method
     public static void main(String[] args) throws SQLException, ClassNotFoundException, InterruptedException {
         new IMMOracleAdapter();
+    }
+
+
+    // Stop method
+    public static void stop(String[] args) {
+        System.exit(0);
     }
 }

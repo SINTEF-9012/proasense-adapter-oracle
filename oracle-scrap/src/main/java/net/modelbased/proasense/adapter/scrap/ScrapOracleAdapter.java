@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2014-2015 SINTEF
+ * Copyright (C) 2014-2016 SINTEF
  *
  *     Brian Elvesæter <brian.elvesater@sintef.no>
  *     Shahzad Karamat <shazad.karamat@gmail.com>
@@ -18,15 +18,15 @@
  */
 package net.modelbased.proasense.adapter.scrap;
 
-import eu.proasense.internal.SimpleEvent;
 import net.modelbased.proasense.adapter.oracle.AbstractOracleAdapter;
+
+import eu.proasense.internal.SimpleEvent;
+
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -35,6 +35,7 @@ import java.util.concurrent.Executors;
 
 public class ScrapOracleAdapter extends AbstractOracleAdapter {
     public final static Logger logger = Logger.getLogger(ScrapOracleAdapter.class);
+
 
     public ScrapOracleAdapter() throws SQLException, ClassNotFoundException, InterruptedException {
         // Get specific adapter properties
@@ -76,7 +77,14 @@ public class ScrapOracleAdapter extends AbstractOracleAdapter {
     }
 
 
+    // Start method
     public static void main(String[] args) throws SQLException, ClassNotFoundException, InterruptedException {
         new ScrapOracleAdapter();
+    }
+
+
+    // Stop method
+    public static void stop(String[] args) {
+        System.exit(0);
     }
 }
